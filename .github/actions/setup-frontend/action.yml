@@ -1,11 +1,11 @@
-name: 'Setup Project'
-description: 'Setup Node.js and install dependencies'
+name: 'Setup Frontend'
+description: 'Install pnpm, Node.js, and frontend dependencies (reuses pnpm cache).'
 
 runs:
   using: 'composite'
   steps:
     - name: Install pnpm
-      uses: pnpm/action-setup@v2
+      uses: pnpm/action-setup@v4
       with:
         version: 10
     - name: Setup Node.js
@@ -13,6 +13,8 @@ runs:
       with:
         node-version: '22'
         cache: 'pnpm'
-    - name: Install dependencies
+        cache-dependency-path: frontend/pnpm-lock.yaml
+    - name: Install frontend dependencies
       shell: bash
+      working-directory: frontend
       run: pnpm install --frozen-lockfile

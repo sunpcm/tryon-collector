@@ -17,7 +17,7 @@ def test_health_returns_ok() -> None:
     assert "mode" in body
 
 
-def test_bundles_batch_is_placeholder() -> None:
+def test_bundles_batch_requires_multipart() -> None:
     response = client.post("/api/bundles/batch")
-    assert response.status_code == 501
-    assert "Phase 1" in response.json()["detail"]
+    assert response.status_code == 400
+    assert response.json()["detail"] == "multipart/form-data required"

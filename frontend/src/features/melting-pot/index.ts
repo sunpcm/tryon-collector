@@ -1,0 +1,1 @@
+export { MeltingPot } from './MeltingPot';

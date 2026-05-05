@@ -1,4 +1,7 @@
 // Export all components
 export { default as Button } from './Button';
 export * from './ui';
-// Add more component exports here
+export { Tag } from './Tag';
+export { ProgressBar } from './ProgressBar';
+export { Tooltip } from './Tooltip';
+export { showToast, ToastContainer, useToast } from './Toast';

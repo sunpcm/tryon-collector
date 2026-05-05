@@ -10,7 +10,11 @@ export const ROLES: readonly Role[] = [
   'annotated',
 ];
 
-export const REQUIRED_ROLES: readonly Role[] = ['product', 'tryon', 'retouched'];
+export const REQUIRED_ROLES: readonly Role[] = [
+  'product',
+  'tryon',
+  'retouched',
+];
 
 export const ROLE_LABELS: Record<Role, string> = {
   product: '产品图',

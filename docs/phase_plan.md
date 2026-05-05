@@ -17,14 +17,18 @@
   - **脚手架基线**：直接基于 [`sunpcm/vite-react-template`](https://github.com/sunpcm/vite-react-template) 落地（已集成 React 19 + Vite + TS + pnpm + ESLint/Prettier/Husky/lint-staged + GitHub Actions CI + `@/` 路径别名 + SVGR）。clone 后整体挪入 `frontend/`，仓库根同级再建 `backend/` + `storage/` + `docs/`。不引入 monorepo 工具（Turborepo / pnpm workspace），项目形状不需要。
   - **必选**：`react-dropzone` 处理全屏拖拽、剪贴板读取与本地 Blob 内存管理，禁止手写原生 HTML5 拖拽事件。
   - **测试框架**：
-    - **单元/组件测试**：沿用 template 自带的 **Jest + Testing Library**（配 Babel 跑 Vite 项目），不替换为 Vitest。理由：template 开箱已配置好 Jest 链路，替换成本半天且无实际收益。
+    - **单元/组件测试**：沿用 template 自带的 **Vitest + Testing Library + jsdom**（Vite 原生集成，无需额外编译器）。禁止再混入 Jest。
     - **E2E 自动化测试**：锁定 **Playwright**（`@playwright/test`），作为**必选**而非可选。禁止用 Cypress / Selenium / Puppeteer 等其它方案，单一工具链收敛。
   - **默认补强（推荐但非强制）**：TypeScript（已在 template 中）、Zustand（轻量状态管理）。选型可由前端负责人微调，但不得替换 React/Vite/react-dropzone 三件套。
 - **UI 风格基线**：[`animal-island-ui`](https://github.com/guokaigdg/animal-island-ui) v0.7.7（动物森友会风格，可爱卡通视觉语言）。
   - **定位**：视觉语言基线，用于提升设计师使用好感度；**不作为唯一组件来源**。
   - **用途**：直接使用其 Button / Card / Input / Modal / Tabs / Switch / Checkbox / Select / Divider / Icon / Collapse 等现成组件，以及字体（Noto Sans SC / Nunito / Zen Maru Gothic）与圆角/配色 token。
   - **版本锁定**：`package.json` 写 `"animal-island-ui": "0.7.7"`（精确版本，**不加 `^`**），避免 0.x 阶段 breaking change。需同时 `pnpm add -D less` 并在入口 `import 'animal-island-ui/style'`。
-  - **禁用**：不得再引入 Ant Design / MUI / Chakra / Tailwind 等重型或风格冲突的 UI 库；保持视觉统一。
+  - **与 Tailwind 的分工**：template 预装 `tailwindcss` v4 + `tailwind-merge` + `clsx`，**保留使用**，但严格限定用途 —
+    - ✅ **允许**：layout utilities（flex / grid / gap / padding / margin / position / overflow / sizing 等结构类）。
+    - ❌ **禁止**：视觉 token（色彩、圆角、阴影、字体、动效曲线）。这些必须取自 animal-island-ui 的 Less 变量，保证视觉统一。
+    - 自研组件中若需组合 className 用 `clsx` + `tailwind-merge`。
+  - **禁用**：不得再引入 Ant Design / MUI / Chakra 等其它 UI 组件库；保持视觉统一。
 - **后端**：极简框架，二选一:
   - **首选**：FastAPI（Python 3.11，uvicorn）。
   - **备选**：Node.js（Fastify 或原生 http，禁止引入 Nest、Express+中间件重栈）。
@@ -55,7 +59,7 @@
 自研组件约束：
 - 统一放在 `frontend/src/components/`，每个组件单独目录（组件 + `.module.less` + 单测）。
 - Less 变量直接 `@import` `animal-island-ui` 的 token；**禁止硬编码色值**。
-- 每个自研组件需配 ≥ 2 个 Jest + Testing Library 单测。
+- 每个自研组件需配 ≥ 2 个 Vitest + Testing Library 单测。
 - 预算：4 个自研补充组件共计 0.5 人日，纳入 Phase 2。
 
 ### 0.1.4 E2E 自动化测试（Playwright）强约束
@@ -183,12 +187,21 @@ tryon-collector/
 ## 3. 分阶段实施计划
 
 > 每个阶段给出：交付物 / 验收标准 / 关键接口或组件 / 可并行项。阶段 0-2 为 MVP，阶段 3-5 为增强。
+> **阶段末文档交付（强约束）**：每个阶段结束时，必须在 `docs/phases/phase_<N>.md` 产出一份阶段总结，作为该阶段的**合并门禁**之一，缺失则视为未完成。模板固定为以下六节：
+> 1. **阶段目标与范围**（对照 `phase_plan.md` §3 本阶段条目）
+> 2. **架构与目录变更**（新增/改动的模块、依赖、关键文件，配合简要目录树）
+> 3. **与 phase_plan 的偏差与原因**（实际落地中被动修改的约束或决策，同步回写 `phase_plan.md`）
+> 4. **测试要点**（本阶段新增的单测 / 组件测 / E2E 用例清单，以及运行命令与当前通过率）
+> 5. **已知风险与遗留项**（跨阶段依赖、延后项、需产品/算法确认事项）
+> 6. **下一阶段入口**（明确下阶段第一个可执行 ticket，避免交接断档）
+>
+> 阶段总结以 PR 形式提交，reviewer 至少检查：总结与代码 diff 一致、测试命令本地可复现、§3 偏差条目已回写入 `phase_plan.md`。
 
 ### Phase 0 · 脚手架与契约冻结（0.75 天）
 **交付物**
-- `frontend/` 初始化：clone [`sunpcm/vite-react-template`](https://github.com/sunpcm/vite-react-template) 到 `frontend/`，删除 `.git`，保留 Vite + React 19 + TS + ESLint + Prettier + **Jest** + Husky + lint-staged + CI workflow。
+- `frontend/` 初始化：clone [`sunpcm/vite-react-template`](https://github.com/sunpcm/vite-react-template) 到 `frontend/`，删除 `.git`，保留 Vite + React 19 + TS + ESLint + Prettier + **Vitest** + Husky + lint-staged + CI workflow + **Playwright 1.57 配置（含 webServer + chromium/firefox/webkit）** + 预留 `e2e/` 冒烟用例。调整 `package.json` name 为 `tryon-collector-frontend`。
 - 安装可爱视觉基线：`pnpm add animal-island-ui@0.7.7 classnames` + `pnpm add -D less`，入口 `main.tsx` 顶部 `import 'animal-island-ui/style'`。
-- **安装 Playwright**：`pnpm add -D @playwright/test` + `pnpm exec playwright install chromium webkit`；创建 `frontend/playwright.config.ts`（含 `webServer` 自动起 dev、baseURL、两浏览器矩阵、HTML reporter）；在 `e2e/specs/smoke.spec.ts` 写一条 `expect(page).toHaveTitle(/Tryon Collector/)` 冒烟用例，确保链路连通。
+- **Playwright 已随 template 到位**：验证 `pnpm exec playwright install chromium webkit` + `pnpm exec playwright test` 可跑通；把 template 自带的 `e2e/app.spec.ts` 改写为 Tryon Collector 的冒烟用例（标题 / 根节点存在）。
 - `backend/` 初始化（FastAPI + uv/poetry + pytest + ruff），并提供 `VITE_API_MODE=e2e` 下的 mock 路由雏形。
 - `docs/api_contract.md`：冻结 POST `/api/bundles/batch` 的 multipart schema（见 §4.1）。
 - 根 `Makefile`：`make dev` 同时起前后端；`make test` 跑双端单测；`make e2e` 跑 Playwright。
@@ -295,8 +308,8 @@ function cluster(files: FileMeta[], config?: ClusterConfig): ClusterResult;
 ### 5.1 测试矩阵
 | 层级 | 工具 | 覆盖重点 |
 |---|---|---|
-| 聚类引擎单测 | **Jest + Testing Library** | 20 组黄金样例（含乱序、缺失、多余、无 groupKey） |
-| 前端交互/组件测试 | **Jest + Testing Library** | Dropzone 拖入、粘贴、批量提交失败行保留；自研 Tag/Toast/ProgressBar/Tooltip 各 ≥ 2 例 |
+| 聚类引擎单测 | **Vitest + Testing Library** | 20 组黄金样例（含乱序、缺失、多余、无 groupKey） |
+| 前端交互/组件测试 | **Vitest + Testing Library** | Dropzone 拖入、粘贴、批量提交失败行保留；自研 Tag/Toast/ProgressBar/Tooltip 各 ≥ 2 例 |
 | 后端单测 | pytest | 幂等、原子落盘、dispatcher 重试 |
 | 端到端 | **Playwright（必选，chromium + webkit）** | §0.1.4 所列 7 条核心用例；CI 合并门禁，失败拦截 PR |
 

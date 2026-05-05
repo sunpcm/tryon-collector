@@ -30,6 +30,8 @@
     }
   },
   "dependencies": {
+    "animal-island-ui": "0.7.7",
+    "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -62,6 +64,7 @@
     "globals": "^16.3.0",
     "husky": "^9.1.7",
     "jsdom": "^27.3.0",
+    "less": "^4.6.4",
     "lint-staged": "^16.1.6",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",

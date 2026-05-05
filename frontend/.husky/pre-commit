@@ -1,0 +1,5 @@
+# 运行 lint-staged (它会根据配置自动跑 eslint, prettier 和 vitest related)
+npx lint-staged
+
+# 如果还需要全量类型检查 (tsc 很难做增量，通常全量跑)
+pnpm type-check

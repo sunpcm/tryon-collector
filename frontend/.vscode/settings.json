@@ -1,0 +1,14 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.preferences.quoteStyle": "single",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "eslint.format.enable": true,
+  "prettier.semi": true,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5"
+}

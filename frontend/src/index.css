@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+
+/* 自定义动画 */
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}

@@ -1,0 +1,22 @@
+# .github/workflows/sync-back.yml
+name: Sync Back to Develop
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: chore(sync)：sync main to develop
+        # 只有当 main 确实超前 develop 时才同步
+        run: |
+          git checkout develop
+          git merge main
+          git push origin develop
+        continue-on-error: true # 有冲突就不自动同步，手动处理

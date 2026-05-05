@@ -1,0 +1,92 @@
+# 🤝 贡献指南与开发流程 (Development Workflow)
+
+欢迎参与项目开发！为了保证代码质量和发布流程的稳定性，我们制定了以下 CI/CD 流水线和开发规范。
+
+## 🚀 快速开始 (Quick Start)
+
+```bash
+# 1. 安装依赖
+pnpm install
+
+# 2. 初始化 Husky (Git Hooks)
+pnpm prepare
+
+# 3. 启动本地开发
+pnpm dev
+```
+
+---
+
+## 🔄 开发流水线 (Pipeline Overview)
+
+我们的自动化流程分为四个阶段，层层递进以确保质量。
+
+### 1. 💻 本地开发阶段 (Local)
+
+**触发时机**: `git commit`
+
+在你提交代码时，Husky 会自动拦截并执行以下检查：
+
+- **Lint & Format**: 运行 `lint-staged`，自动修复暂存区文件的 ESLint 和 Prettier 问题。
+- **Fast Test**: 运行 `vitest related`，只测试受本次提交影响的单元测试，速度极快。
+- **Commit Check**: 运行 `commitlint`，确保提交信息符合规范。
+
+> **💡 提示**: 请使用 `pnpm commit` 启动交互式提交工具，或遵循 `feat:`, `fix:` 等规范格式。
+
+### 2. 🔄 提单合并阶段 (PR: Feature -> Develop)
+
+**触发时机**: 创建/更新 Pull Request
+
+GitHub Actions 会运行以下检查（Blocking）：
+
+- **Build Check**: `npm run build` - 确保代码能成功打包，无类型错误。
+- **Unit Test**: `vitest run` - 运行全量单元测试，防止逻辑回归。
+- **E2E Smoke**: `playwright test --grep @smoke` - 只运行关键路径测试（如登录、核心业务），快速反馈。
+- **🤖 AI Review**: AI Agent 会扫描变更代码，并在 PR 中留下非阻塞性的改进建议。
+
+### 3. 🚀 发布准备阶段 (PR: Develop -> Main)
+
+**触发时机**: 创建合并到 Main 的 PR
+
+这是上线前的最后一道防线：
+
+- **Build & Unit Test**: 再次确认构建和逻辑无误。
+- **Deploy to Staging**: 代码自动部署到预发布环境 (Staging)。
+- **Full E2E Test**: `playwright test` - 针对 Staging 环境运行全量端到端测试，模拟真实用户操作。
+
+### 4. ✅ 正式上线 (Merge to Main)
+
+**触发时机**: 代码合并入 Main 分支
+
+- **Deploy to Prod**: 自动部署到生产环境。
+- **Live Smoke Test**: 运行线上巡检脚本，确保服务在生产环境正常运行。
+
+---
+
+## 🛠 常用命令速查表
+
+| 命令                 | 说明                             |
+| :------------------- | :------------------------------- |
+| `pnpm dev`           | 启动本地开发服务器               |
+| `pnpm build`         | 构建生产版本                     |
+| `pnpm commit`        | **推荐**：使用交互式工具提交代码 |
+| `pnpm test`          | 运行单元测试 (Watch 模式)        |
+| `pnpm test:run`      | 运行一次全量单元测试 (CI 模式)   |
+| `pnpm test:ui`       | 打开可视化的测试报告界面         |
+| `pnpm test:coverage` | 生成测试覆盖率报告               |
+| `pnpm lint`          | 检查代码风格                     |
+
+## 📝 提交信息规范 (Commit Convention)
+
+我们遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+- `feat`: 新增功能
+- `fix`: 修复 Bug
+- `docs`: 文档变更
+- `style`: 代码格式（不影响功能）
+- `refactor`: 代码重构
+- `perf`: 性能优化
+- `test`: 测试相关
+- `chore`: 构建过程或辅助工具的变动
+
+**示例**: `feat(auth): add login page support`

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -75,8 +74,7 @@ def test_save_bundle_cleans_staging_on_error(tmp_path):
 
     files["product"] = ("product.jpg", type("F", (), {"read": bad_read})(), "image/jpeg")
 
-    with patch("app.services.bundle.STORAGE_ROOT", tmp_path):
-        with pytest.raises(BundleSaveError):
+    with patch("app.services.bundle.STORAGE_ROOT", tmp_path), pytest.raises(BundleSaveError):
             save_bundle("submit-003", "SKU_ERR", files, _meta())
 
     staging_root = tmp_path / ".staging"

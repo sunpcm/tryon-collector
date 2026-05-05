@@ -7,7 +7,7 @@ import json
 import os
 import shutil
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import BinaryIO
 
@@ -45,7 +45,7 @@ def save_bundle(
 
     try:
         file_meta: dict[str, dict] = {}
-        for role, (original_filename, fileobj, mime) in files.items():
+        for role, (_original_filename, fileobj, mime) in files.items():
             ext = MIME_TO_EXT.get(mime, ".bin")
             dest_name = f"{role}{ext}"
             dest_path = staging_dir / dest_name
@@ -68,7 +68,7 @@ def save_bundle(
             "category": meta.get("category", ""),
             "optional_notes": meta.get("optional_notes", ""),
             "group_key": group_key,
-            "upload_time": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "upload_time": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "has_annotation": "annotated" in files,
             "files": file_meta,
         }

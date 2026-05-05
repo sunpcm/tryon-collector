@@ -34,3 +34,4 @@ storage/dispatch_log/*
 
 # Claude scratch
 .claude/
+backend/storage/

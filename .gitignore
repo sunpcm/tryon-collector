@@ -1,0 +1,36 @@
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+frontend/playwright-report/
+frontend/e2e/.results/
+frontend/test-results/
+
+# Python / backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/.ruff_cache/
+*.pyc
+
+# Storage (runtime data — never commit real bundles)
+storage/raw_ingestion/*
+!storage/raw_ingestion/.gitkeep
+storage/.staging/*
+!storage/.staging/.gitkeep
+storage/dispatch_log/*
+!storage/dispatch_log/.gitkeep
+
+# Local env & editor
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Claude scratch
+.claude/

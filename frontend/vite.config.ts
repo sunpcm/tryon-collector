@@ -13,6 +13,18 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/health': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
   // Vitest 测试 config
   test: {
     globals: true, // 开启全局 API (describe, it, expect)，类似 Jest

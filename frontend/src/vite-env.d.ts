@@ -3,7 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;
   readonly VITE_API_BASE_URL: string;
-  // Add more env variables here
+  readonly VITE_API_MODE: 'live' | 'e2e';
 }
 
 interface ImportMeta {

@@ -43,10 +43,12 @@ export function BatchSubmitBar({
         if (main) {
           const fieldName = buildFileFieldName(row.groupKey, role);
           filesRecord[role] = fieldName;
-          // Find the original File from blobUrl — we store FileMeta but need File for upload
-          // For now, we'll need to fetch from blobUrl
-          const blob = await fetch(main.blobUrl).then(r => r.blob());
-          const file = new File([blob], main.name, { type: main.type });
+          // Use original File reference if available, otherwise fetch from blobUrl
+          const file =
+            main.file ??
+            (await fetch(main.blobUrl)
+              .then(r => r.blob())
+              .then(blob => new File([blob], main.name, { type: main.type })));
           fileMap[fieldName] = file;
         }
       }

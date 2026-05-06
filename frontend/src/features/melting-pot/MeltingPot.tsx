@@ -13,6 +13,7 @@ function fileToFileMeta(file: File): FileMeta {
     size: file.size,
     type: file.type,
     blobUrl: URL.createObjectURL(file),
+    file,
   };
 }
 

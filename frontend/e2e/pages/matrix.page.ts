@@ -11,7 +11,9 @@ export class MatrixPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.matrixContainer = page.locator('[class*="border"][class*="rounded-lg"]').first();
+    this.matrixContainer = page
+      .locator('[class*="border"][class*="rounded-lg"]')
+      .first();
     this.readyCount = page.getByText(/就绪/).first();
     this.incompleteCount = page.getByText(/不完整/).first();
     this.unassignedSection = page.getByText('未归类文件');

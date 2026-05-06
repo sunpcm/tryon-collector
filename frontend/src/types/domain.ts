@@ -29,6 +29,7 @@ export interface FileMeta {
   size: number;
   type: string; // MIME
   blobUrl: string;
+  file?: File; // original File reference (avoids blobUrl → File conversion on submit)
 }
 
 export interface MatrixCell {

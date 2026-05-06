@@ -7,15 +7,6 @@ import { MatrixPage } from '../pages/matrix.page';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.resolve(__dirname, '../fixtures');
 
-const ALL_SKU_FILES = [
-  'SKU001-product.jpg', 'SKU002-product.jpg', 'SKU003-product.jpg', 'SKU004-product.jpg',
-  'SKU005-product.jpg', 'SKU006-product.jpg', 'SKU007-product.jpg',
-  'SKU001-tryon.jpg', 'SKU002-tryon.jpg', 'SKU003-tryon.jpg', 'SKU004-tryon.jpg',
-  'SKU005-tryon.jpg', 'SKU006-tryon.jpg', 'SKU007-tryon.jpg',
-  'SKU001-retouched.jpg', 'SKU002-retouched.jpg', 'SKU003-retouched.jpg', 'SKU004-retouched.jpg',
-  'SKU005-retouched.jpg', 'SKU006-retouched.jpg', 'SKU007-retouched.jpg',
-].map(f => path.join(FIXTURES, f));
-
 // Pre-set nickname in storageState to skip modal in most tests
 test.use({
   storageState: {
@@ -23,16 +14,16 @@ test.use({
     origins: [
       {
         origin: 'http://localhost:5173',
-        localStorage: [
-          { name: 'tryon-nickname', value: '"测试设计师"' },
-        ],
+        localStorage: [{ name: 'tryon-nickname', value: '"测试设计师"' }],
       },
     ],
   },
 });
 
 test.describe('MVP E2E', () => {
-  test('1. nickname flow: first visit shows modal, enter nickname persists', async ({ page }) => {
+  test('1. nickname flow: first visit shows modal, enter nickname persists', async ({
+    page,
+  }) => {
     // Clear storage to simulate first visit
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
@@ -55,7 +46,9 @@ test.describe('MVP E2E', () => {
     await expect(page.getByText('测试设计师')).toBeVisible();
   });
 
-  test('2. golden path: 18 files cluster into 7 ready rows', async ({ page }) => {
+  test('2. golden path: 18 files cluster into 7 ready rows', async ({
+    page,
+  }) => {
     const dropzone = new DropzonePage(page);
     const matrix = new MatrixPage(page);
 
@@ -63,12 +56,27 @@ test.describe('MVP E2E', () => {
 
     // Upload 18 files: 4 product + 7 tryon + 7 retouched (but we have 7 product too)
     const files = [
-      'SKU001-product.jpg', 'SKU002-product.jpg', 'SKU003-product.jpg', 'SKU004-product.jpg',
-      'SKU005-product.jpg', 'SKU006-product.jpg', 'SKU007-product.jpg',
-      'SKU001-tryon.jpg', 'SKU002-tryon.jpg', 'SKU003-tryon.jpg', 'SKU004-tryon.jpg',
-      'SKU005-tryon.jpg', 'SKU006-tryon.jpg', 'SKU007-tryon.jpg',
-      'SKU001-retouched.jpg', 'SKU002-retouched.jpg', 'SKU003-retouched.jpg', 'SKU004-retouched.jpg',
-      'SKU005-retouched.jpg', 'SKU006-retouched.jpg', 'SKU007-retouched.jpg',
+      'SKU001-product.jpg',
+      'SKU002-product.jpg',
+      'SKU003-product.jpg',
+      'SKU004-product.jpg',
+      'SKU005-product.jpg',
+      'SKU006-product.jpg',
+      'SKU007-product.jpg',
+      'SKU001-tryon.jpg',
+      'SKU002-tryon.jpg',
+      'SKU003-tryon.jpg',
+      'SKU004-tryon.jpg',
+      'SKU005-tryon.jpg',
+      'SKU006-tryon.jpg',
+      'SKU007-tryon.jpg',
+      'SKU001-retouched.jpg',
+      'SKU002-retouched.jpg',
+      'SKU003-retouched.jpg',
+      'SKU004-retouched.jpg',
+      'SKU005-retouched.jpg',
+      'SKU006-retouched.jpg',
+      'SKU007-retouched.jpg',
     ].map(f => path.join(FIXTURES, f));
 
     await dropzone.uploadFiles(files);
@@ -85,28 +93,33 @@ test.describe('MVP E2E', () => {
     await expect(matrix.submitButton).toBeVisible();
   });
 
-  test('3. partial incomplete: missing retouched marks row incomplete', async ({ page }) => {
+  test('3. partial incomplete: missing retouched marks row incomplete', async ({
+    page,
+  }) => {
     const dropzone = new DropzonePage(page);
     await page.goto('/');
 
     // Upload only product + tryon (missing retouched)
-    const files = [
-      'SKU001-product.jpg',
-      'SKU001-tryon.jpg',
-    ].map(f => path.join(FIXTURES, f));
+    const files = ['SKU001-product.jpg', 'SKU001-tryon.jpg'].map(f =>
+      path.join(FIXTURES, f)
+    );
 
     await dropzone.uploadFiles(files);
 
     // Should show incomplete status
     await expect(page.getByText('SKU001')).toBeVisible();
-    await expect(page.getByText('不完整', { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText('不完整', { exact: true }).first()
+    ).toBeVisible();
 
     // Submit button should be disabled
     const submitBtn = page.getByRole('button', { name: '一键批量提交' });
     await expect(submitBtn).toBeDisabled();
   });
 
-  test('4. unassigned file: unknown file goes to unassigned section', async ({ page }) => {
+  test('4. unassigned file: unknown file goes to unassigned section', async ({
+    page,
+  }) => {
     const dropzone = new DropzonePage(page);
     await page.goto('/');
 
@@ -131,7 +144,9 @@ test.describe('MVP E2E', () => {
     await expect(submitBtn).toBeDisabled();
   });
 
-  test('6. failed row retention: rejected rows stay on screen with status badge', async ({ page }) => {
+  test('6. failed row retention: rejected rows stay on screen with status badge', async ({
+    page,
+  }) => {
     const dropzone = new DropzonePage(page);
 
     await page.goto('/');
@@ -142,8 +157,12 @@ test.describe('MVP E2E', () => {
 
     // Upload 2 complete SKU sets
     const files = [
-      'SKU001-product.jpg', 'SKU001-tryon.jpg', 'SKU001-retouched.jpg',
-      'SKU002-product.jpg', 'SKU002-tryon.jpg', 'SKU002-retouched.jpg',
+      'SKU001-product.jpg',
+      'SKU001-tryon.jpg',
+      'SKU001-retouched.jpg',
+      'SKU002-product.jpg',
+      'SKU002-tryon.jpg',
+      'SKU002-retouched.jpg',
     ].map(f => path.join(FIXTURES, f));
 
     await dropzone.uploadFiles(files);
@@ -155,14 +174,20 @@ test.describe('MVP E2E', () => {
     await expect(readyBadges).toHaveCount(2);
 
     // Intercept API call — accept SKU001, reject SKU002
-    await page.route('**/api/bundles/batch', async (route) => {
+    await page.route('**/api/bundles/batch', async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           submit_id: 'mock-submit-id',
           accepted: [{ group_key: 'SKU001', task_id: 'mock-task-001' }],
-          rejected: [{ group_key: 'SKU002', reason: 'disk_full', detail: 'mock disk full' }],
+          rejected: [
+            {
+              group_key: 'SKU002',
+              reason: 'disk_full',
+              detail: 'mock disk full',
+            },
+          ],
         }),
       });
     });
@@ -172,7 +197,9 @@ test.describe('MVP E2E', () => {
     await submitBtn.click();
 
     // Wait for status badges
-    await expect(page.getByText('已接受').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('已接受').first()).toBeVisible({
+      timeout: 10000,
+    });
     await expect(page.getByText('已拒绝').first()).toBeVisible();
 
     // Matrix should still be visible (not cleared)
@@ -187,18 +214,41 @@ test.describe('MVP E2E', () => {
     // Measure clustering performance via exposed test hook
     const p95 = await page.evaluate(() => {
       const cluster = (window as Record<string, unknown>).__testCluster as
-        | ((files: { id: string; name: string; size: number; blobUrl: string; type: string }[]) => unknown)
+        | ((
+            files: {
+              id: string;
+              name: string;
+              size: number;
+              blobUrl: string;
+              type: string;
+            }[]
+          ) => unknown)
         | undefined;
       if (!cluster) throw new Error('__testCluster not available');
 
       // Build synthetic FileMeta list matching 7 SKUs × 3 roles
       const names = [
-        'SKU001-product.jpg', 'SKU002-product.jpg', 'SKU003-product.jpg', 'SKU004-product.jpg',
-        'SKU005-product.jpg', 'SKU006-product.jpg', 'SKU007-product.jpg',
-        'SKU001-tryon.jpg', 'SKU002-tryon.jpg', 'SKU003-tryon.jpg', 'SKU004-tryon.jpg',
-        'SKU005-tryon.jpg', 'SKU006-tryon.jpg', 'SKU007-tryon.jpg',
-        'SKU001-retouched.jpg', 'SKU002-retouched.jpg', 'SKU003-retouched.jpg', 'SKU004-retouched.jpg',
-        'SKU005-retouched.jpg', 'SKU006-retouched.jpg', 'SKU007-retouched.jpg',
+        'SKU001-product.jpg',
+        'SKU002-product.jpg',
+        'SKU003-product.jpg',
+        'SKU004-product.jpg',
+        'SKU005-product.jpg',
+        'SKU006-product.jpg',
+        'SKU007-product.jpg',
+        'SKU001-tryon.jpg',
+        'SKU002-tryon.jpg',
+        'SKU003-tryon.jpg',
+        'SKU004-tryon.jpg',
+        'SKU005-tryon.jpg',
+        'SKU006-tryon.jpg',
+        'SKU007-tryon.jpg',
+        'SKU001-retouched.jpg',
+        'SKU002-retouched.jpg',
+        'SKU003-retouched.jpg',
+        'SKU004-retouched.jpg',
+        'SKU005-retouched.jpg',
+        'SKU006-retouched.jpg',
+        'SKU007-retouched.jpg',
       ];
       const files = names.map((name, i) => ({
         id: `perf-${i}`,

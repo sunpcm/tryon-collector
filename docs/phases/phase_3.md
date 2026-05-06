@@ -1,6 +1,6 @@
 # Phase 3 · 分发与训练目录对接 · 阶段总结
 
-> 状态：**进行中** 🚧（2026-05-06 开始）
+> 状态：**已完成** ✅（2026-05-06）
 > 对应 `phase_plan.md` §3 · Phase 3
 
 ## 1. 阶段目标与范围
@@ -23,7 +23,7 @@
 | 3 | mask 生成 | ✅ 完成 | — | 8 个 mask 单测 + 2 个 dispatcher 集成测试，OpenCV 差值 mask |
 | 4 | 重试队列 | ✅ 完成 | — | 6 个单测，JSON 队列文件，后台重试 3 次，失败写 dispatch_log/failed/ |
 | 5 | Playwright E2E 补齐 | ✅ 完成 | — | 用例 6（失败行保留）+ 用例 7（聚类 P95 <50ms）；用例 5（剪贴板→cell）跳过，功能未接通 |
-| 6 | 前端优化 | ⬜ 待开始 | — | — |
+| 6 | 前端优化 | ✅ 完成 | — | FileMeta 增加 file 属性，submit 直接用 File 引用，跳过 blobUrl 转换 |
 
 ## 3. 偏差记录
 
@@ -42,8 +42,19 @@
 
 ## 5. 风险与遗留
 
-（阶段完成后填写）
+| 风险/遗留 | 说明 | 缓解 |
+|-----------|------|------|
+| 剪贴板粘贴到选中 cell 未接通 | selectedCell UI 交互未实现 | Phase 4 与键盘流一起 |
+| mask 质量未经真实样本验证 | 测试用合成图片，真实试穿图 mask 质量待验证 | Phase 4 用真实样本调阈值 |
+| retry_queue 是进程内后台任务 | 服务重启后队列丢失（JSON 文件持久化，但无自动恢复） | 可接受；Phase 5 加 startup 恢复 |
+| dispatch 失败时 mask 生成是 best-effort | 如果 retouched/tryon 读取失败，mask 静默跳过 | 已记录；重试队列会重试整个 dispatch |
 
 ## 6. 下一阶段入口
 
-（阶段完成后填写）
+**Phase 4 · 体验增强**（对应 `phase_plan.md` §3 Phase 4）：
+
+1. **剪贴板粘贴到选中 cell**：接通 `selectedCell` → paste → 替换当前 cell 的 FileMeta。
+2. **键盘流**：`Enter` 提交、`Esc` 清空未归类区、`1/2/3/4` 聚焦角色 cell。
+3. **侧边栏 Gamification**：读取本机提交计数，展示「拦截 AI 翻车 N 次」。
+4. **聚类兜底策略开关**：配置化正则，首次上线收集真实样本后微调。
+5. **审计页 `/audit`**：分页浏览最近 100 个 Bundle，支持按花名/品类筛选。

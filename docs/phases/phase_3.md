@@ -21,7 +21,7 @@
 | 1 | `app/testing.py` E2E mock | ✅ 完成 | `7d7262f` | 11 个单测，镜像 ingest 校验逻辑，不写文件系统 |
 | 2 | `dispatcher.py` symlink | ✅ 完成 | `ed03641` | 6 个单测，symlink 到 img-dc 训练目录，集成到 ingest 路由 |
 | 3 | mask 生成 | ✅ 完成 | — | 8 个 mask 单测 + 2 个 dispatcher 集成测试，OpenCV 差值 mask |
-| 4 | 重试队列 | ⬜ 待开始 | — | — |
+| 4 | 重试队列 | ✅ 完成 | — | 6 个单测，JSON 队列文件，后台重试 3 次，失败写 dispatch_log/failed/ |
 | 5 | Playwright E2E 补齐 | ⬜ 待开始 | — | — |
 | 6 | 前端优化 | ⬜ 待开始 | — | — |
 
@@ -34,6 +34,7 @@
 - `uv run pytest tests/test_testing.py` — 11 个用例覆盖：happy path（单/多 bundle）、部分失败、无幂等缓存、校验拒绝、task_id 格式、无文件系统写入
 - `uv run pytest tests/test_dispatcher.py` — 8 个用例覆盖：happy path symlink 创建、annotated 文件、缺失 metadata、缺失源文件、幂等覆写、symlink 可读、mask 集成生成、fake 图片跳过 mask
 - `uv run pytest tests/test_mask.py` — 8 个用例覆盖：全黑 mask、全白 mask、部分差异、阈值抑制、尺寸不匹配、图片读取失败、二值输出
+- `uv run pytest tests/test_retry_queue.py` — 6 个用例覆盖：入队创建文件、重试成功移除、达到最大重试移入 failed、失败递增 attempts、空队列、多条目
 
 ## 5. 风险与遗留
 

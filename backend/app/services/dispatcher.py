@@ -12,6 +12,8 @@ import json
 import os
 from pathlib import Path
 
+from app.services.mask import MaskError, generate_mask
+
 STORAGE_ROOT = Path(os.getenv("STORAGE_ROOT", "storage"))
 IMG_DC_ROOT = Path(os.getenv("IMG_DC_ROOT", "img-dc"))
 
@@ -76,5 +78,25 @@ def dispatch_bundle(task_id: str) -> list[Path]:
         raise
     except OSError as exc:
         raise DispatchError(f"symlink creation failed: {exc}") from exc
+
+    # generate mask from retouched - tryon and dispatch to annotations
+    try:
+        ret_path = bundle_dir / files_meta["retouched"]["filename"]
+        try_path = bundle_dir / files_meta["tryon"]["filename"]
+        mask_path = bundle_dir / "mask.png"
+
+        if ret_path.exists() and try_path.exists():
+            generate_mask(ret_path, try_path, mask_path)
+
+            ann_dir = IMG_DC_ROOT / "data" / "annotations"
+            ann_dir.mkdir(parents=True, exist_ok=True)
+            short_id = task_id[:8]
+            mask_link = ann_dir / f"{group_key}_{short_id}_mask.png"
+            if mask_link.is_symlink():
+                mask_link.unlink()
+            mask_link.symlink_to(mask_path.resolve())
+            created.append(mask_link)
+    except (MaskError, OSError, KeyError):
+        pass  # mask generation is best-effort; bundle is still accepted
 
     return created

@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "python-multipart>=0.0.17",
+    "opencv-python-headless>=4.13.0.92",
 ]
 
 [dependency-groups]

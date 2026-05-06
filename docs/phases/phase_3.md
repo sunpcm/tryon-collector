@@ -18,8 +18,8 @@
 
 | # | 任务 | 状态 | Commit | 说明 |
 |---|------|------|--------|------|
-| 1 | `app/testing.py` E2E mock | ✅ 完成 | — | 11 个单测，镜像 ingest 校验逻辑，不写文件系统 |
-| 2 | `dispatcher.py` symlink | ⬜ 待开始 | — | — |
+| 1 | `app/testing.py` E2E mock | ✅ 完成 | `7d7262f` | 11 个单测，镜像 ingest 校验逻辑，不写文件系统 |
+| 2 | `dispatcher.py` symlink | ✅ 完成 | — | 6 个单测，symlink 到 img-dc 训练目录，集成到 ingest 路由 |
 | 3 | mask 生成 | ⬜ 待开始 | — | — |
 | 4 | 重试队列 | ⬜ 待开始 | — | — |
 | 5 | Playwright E2E 补齐 | ⬜ 待开始 | — | — |
@@ -32,6 +32,7 @@
 ## 4. 测试要点
 
 - `uv run pytest tests/test_testing.py` — 11 个用例覆盖：happy path（单/多 bundle）、部分失败、无幂等缓存、校验拒绝、task_id 格式、无文件系统写入
+- `uv run pytest tests/test_dispatcher.py` — 6 个用例覆盖：happy path symlink 创建、annotated 文件、缺失 metadata、缺失源文件、幂等覆写、symlink 可读
 
 ## 5. 风险与遗留
 

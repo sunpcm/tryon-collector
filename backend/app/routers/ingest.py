@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from app.services.bundle import BundleSaveError, save_bundle
 from app.services.idempotency import get_idempotency, set_idempotency
+from app.testing import handle_mock_submit
 
 router = APIRouter()
 
@@ -33,6 +34,10 @@ def _err(code: int, detail: str) -> JSONResponse:
 
 @router.post("/bundles/batch")
 async def submit_bundles_batch(request: Request) -> JSONResponse:
+    # E2E mock mode: validate + return mock data, no filesystem writes
+    if request.headers.get("x-tryon-mode") == "e2e":
+        return await handle_mock_submit(request)
+
     content_type = request.headers.get("content-type", "")
     if "multipart/form-data" not in content_type:
         return _err(400, "multipart/form-data required")

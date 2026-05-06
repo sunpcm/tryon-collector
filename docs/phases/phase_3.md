@@ -22,12 +22,14 @@
 | 2 | `dispatcher.py` symlink | ✅ 完成 | `ed03641` | 6 个单测，symlink 到 img-dc 训练目录，集成到 ingest 路由 |
 | 3 | mask 生成 | ✅ 完成 | — | 8 个 mask 单测 + 2 个 dispatcher 集成测试，OpenCV 差值 mask |
 | 4 | 重试队列 | ✅ 完成 | — | 6 个单测，JSON 队列文件，后台重试 3 次，失败写 dispatch_log/failed/ |
-| 5 | Playwright E2E 补齐 | ⬜ 待开始 | — | — |
+| 5 | Playwright E2E 补齐 | ✅ 完成 | — | 用例 6（失败行保留）+ 用例 7（聚类 P95 <50ms）；用例 5（剪贴板→cell）跳过，功能未接通 |
 | 6 | 前端优化 | ⬜ 待开始 | — | — |
 
 ## 3. 偏差记录
 
-暂无偏差。
+| 偏差 | 原因 | 影响 |
+|------|------|------|
+| 用例 5（剪贴板粘贴到选中 cell）跳过 | Phase 2 遗留：selectedCell UI 交互未接通 | 推迟到 Phase 4 与键盘流一起实现 |
 
 ## 4. 测试要点
 
@@ -35,6 +37,8 @@
 - `uv run pytest tests/test_dispatcher.py` — 8 个用例覆盖：happy path symlink 创建、annotated 文件、缺失 metadata、缺失源文件、幂等覆写、symlink 可读、mask 集成生成、fake 图片跳过 mask
 - `uv run pytest tests/test_mask.py` — 8 个用例覆盖：全黑 mask、全白 mask、部分差异、阈值抑制、尺寸不匹配、图片读取失败、二值输出
 - `uv run pytest tests/test_retry_queue.py` — 6 个用例覆盖：入队创建文件、重试成功移除、达到最大重试移入 failed、失败递增 attempts、空队列、多条目
+- `pnpm exec playwright test --project=chromium` — 6/6 通过（原有 4 条 + 新增用例 6 失败行保留 + 用例 7 聚类 P95 性能基线）
+- `main.tsx` 在 dev 模式暴露 `window.__testCluster` 供 E2E 性能测试使用
 
 ## 5. 风险与遗留
 

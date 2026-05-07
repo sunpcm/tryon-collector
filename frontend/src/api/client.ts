@@ -33,8 +33,9 @@ export async function submitBundlesBatch(
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => 'Unknown error');
-    throw new Error(`Submit failed (${res.status}): ${text}`);
+    const body = await res.json().catch(() => null);
+    const msg = body?.message || body?.detail || await res.text().catch(() => 'Unknown error');
+    throw new Error(msg);
   }
 
   return res.json();

@@ -1,11 +1,12 @@
 .PHONY: help install dev dev-frontend dev-backend test test-frontend test-backend \
-        lint lint-frontend lint-backend e2e build clean
+        lint lint-frontend lint-backend e2e build clean deploy
 
 help:
 	@echo "Tryon Collector · make targets"
 	@echo ""
 	@echo "  make install        Install frontend (pnpm) and backend (uv) deps"
 	@echo "  make dev            Run frontend + backend concurrently"
+	@echo "  make deploy         Build frontend + serve from single uvicorn process"
 	@echo "  make test           Run frontend (Vitest) + backend (pytest)"
 	@echo "  make lint           Run ESLint + ruff"
 	@echo "  make e2e            Run Playwright (chromium + webkit)"
@@ -54,3 +55,6 @@ build:
 clean:
 	cd frontend && rm -rf dist coverage playwright-report test-results .vite
 	cd backend && rm -rf .pytest_cache .ruff_cache
+
+deploy:
+	./scripts/run.sh

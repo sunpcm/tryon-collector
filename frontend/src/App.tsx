@@ -12,7 +12,7 @@ import { useMatrixStore } from '@/store';
 function MainPage() {
   const [businessLine, setBusinessLine] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
-  const { matrix, clearAll } = useMatrixStore();
+  const { files, clearAll } = useMatrixStore();
 
   return (
     <MeltingPot>
@@ -44,7 +44,7 @@ function MainPage() {
             </section>
 
             {/* Dropzone hint */}
-            {matrix.length === 0 && (
+            {files.length === 0 && (
               <div className="text-center py-20 text-gray-400">
                 <p className="text-lg">
                   将图片拖入窗口，或使用 Ctrl/Cmd+V 粘贴
@@ -55,8 +55,8 @@ function MainPage() {
               </div>
             )}
 
-            {/* Matrix */}
-            {matrix.length > 0 && (
+            {/* Matrix + Unassigned */}
+            {files.length > 0 && (
               <section>
                 <MatrixView />
                 <BatchSubmitBar

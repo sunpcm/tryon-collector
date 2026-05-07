@@ -1,12 +1,12 @@
 # Tryon Collector · 分阶段实施方案 (Phase Plan)
 
-> 本文档为实施基线，同步自 `docs/1.md`（系统设计）与 `docs/2.md`（UI 草图），并引入「大熔炉 Dropzone + 自动聚类矩阵」作为本期核心增量。所有阶段按顺序依赖，可并行之处在阶段末尾标注。
+> 本文档为实施基线，同步自早期系统设计与 UI 草图（已归档至 `docs/archive/`），并引入「大熔炉 Dropzone + 自动聚类矩阵」作为本期核心增量。所有阶段按顺序依赖，可并行之处在阶段末尾标注。
 
 ## 0. 产品定位与设计不变量
 
 - **部署场景**：局域网内部工具，单机部署，无外网暴露；无账号体系，以 LocalStorage「花名」区分操作者。
 - **北极星指标**：设计师从「拖入文件」到「看到提交成功」的中位耗时 ≤ 10 秒（按 1 批 5 个任务包、平均 15 张图计）。
-- **与 `docs/2.md` 草图的关系**：草图中的四卡槽交互作为「单任务精修模式」保留为矩阵的一行展开视图；主流程升级为批量矩阵。
+- **与早期 UI 草图的关系**（`docs/archive/ui-wireframe.md`）：草图中的四卡槽交互作为「单任务精修模式」保留为矩阵的一行展开视图；主流程升级为批量矩阵。
 
 ## 0.1 强约束规范（Non-negotiable）
 
@@ -151,7 +151,7 @@ tryon-collector/
 ## 2. 核心概念：熔炉、聚类、矩阵
 
 ### 2.1 任务包 (Task Bundle)
-一次「设计师 + 一款商品」的最小提交单元。一个 Bundle 必包含 `product` / `tryon` / `retouched` 三类图各 1 张，可选 `annotated` 1 张。后端落盘后生成 `<uuid>/` 目录与 `metadata.json`（结构沿用 `docs/1.md` §三）。
+一次「设计师 + 一款商品」的最小提交单元。一个 Bundle 必包含 `product` / `tryon` / `retouched` 三类图各 1 张，可选 `annotated` 1 张。后端落盘后生成 `<uuid>/` 目录与 `metadata.json`（结构沿用早期系统设计 §三，见 `docs/archive/system-design.md`）。
 
 ### 2.2 大熔炉 (Melting Pot Dropzone)
 全屏无差别 Dropzone，接受一次性拖入任意数量的图片文件。前端不要求文件顺序，不要求预先分类。
@@ -167,7 +167,7 @@ tryon-collector/
      - `retouched`: `精修|retouched|final|fixed|pr`
      - `annotated`: `涂鸦|标注|annotated|mark|prompt`
    - 同 `groupKey` 且同角色出现多张时，按文件名中的末尾序号排序，取首张为主图，其余降级为「候选图」在该 cell 内做胶片条预览（设计师可切换主图）。
-2. **兜底策略 · 内容启发式（可选开关，默认关闭）**：当文件名无法提取 `groupKey` 时，使用 `docs/2.md` §外挂建议中的 canvas 采样（边缘像素方差 → product；高饱和红色像素 → annotated）猜测角色，并把它们放入「未归类区」供人工拖拽修正，不自动并入矩阵。
+2. **兜底策略 · 内容启发式（可选开关，默认关闭）**：当文件名无法提取 `groupKey` 时，使用早期 UI 草图 §外挂建议中的 canvas 采样（边缘像素方差 → product；高饱和红色像素 → annotated）猜测角色，并把它们放入「未归类区」供人工拖拽修正，不自动并入矩阵。
 3. **手动覆盖**：任意 cell 支持从「未归类区」拖入覆盖；任意 cell 内右键可清空或切主图。
 
 > 聚类引擎必须是纯函数 `cluster(files: FileMeta[]): {matrix, unassigned}`，无副作用，便于单测覆盖（阶段 3 交付 ≥ 20 组黄金样例）。
@@ -182,7 +182,7 @@ tryon-collector/
 
 - 行状态：`就绪` / `不完整`（缺必填角色）/ `多余`（同角色 >1 候选，提示选主图）。
 - 顶部统计条：`就绪 X · 不完整 Y · 未归类 Z`，仅当 `Y=0 且 Z=0` 时「一键批量提交」按钮激活。
-- 每行可展开为 `docs/2.md` 的四格沉浸式卡槽视图，用于逐张替换/粘贴。
+- 每行可展开为四格沉浸式卡槽视图（见 `docs/archive/ui-wireframe.md`），用于逐张替换/粘贴。
 
 ## 3. 分阶段实施计划
 
@@ -216,7 +216,7 @@ tryon-collector/
 **交付物**
 - `POST /api/bundles/batch`：接收 N 个 Bundle（multipart/form-data），每个 Bundle 携带 `product/tryon/retouched/annotated?` 与公共元数据。
 - 原子落盘：先写入 `storage/.staging/<uuid>/`，全部文件落盘+校验 hash 通过后 `os.rename` 到 `storage/raw_ingestion/<uuid>/`，避免半成品污染数据源。
-- `metadata.json` 结构遵循 `docs/1.md` §三，新增字段：`group_key`、`client_submit_id`（幂等键）、`file_hashes`。
+- `metadata.json` 结构遵循早期系统设计 §三（`docs/archive/system-design.md`），新增字段：`group_key`、`client_submit_id`（幂等键）、`file_hashes`。
 - `services/dispatcher.py`：提交成功后异步 symlink 到 `img-dc` 训练目录；失败不影响用户提交，写入 `dispatch_log/`。
 
 **验收**
@@ -261,7 +261,7 @@ tryon-collector/
 - Playwright 7 条用例在 chromium + webkit 矩阵下连续 3 次运行全绿（排除 flaky）。
 
 ### Phase 4 · 体验增强（1 天，可裁剪）
-- 侧边栏 Gamification（`docs/2.md`）：读取本机提交计数，展示「拦截 AI 翻车 N 次」。
+- 侧边栏 Gamification（见 `docs/archive/ui-wireframe.md`）：读取本机提交计数，展示「拦截 AI 翻车 N 次」。
 - 聚类兜底策略开关（§2.3 第 2 条）。
 - 键盘流：`Enter` 提交、`Esc` 清空未归类区、`1/2/3/4` 聚焦当前行的角色 cell。
 - 审计页 `/audit`：分页浏览最近 100 个 Bundle，支持按花名/品类筛选（只读，不做删除）。

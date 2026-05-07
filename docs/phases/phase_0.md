@@ -23,7 +23,7 @@ tryon-collector/
 │   ├── actions/setup-frontend/    # 组合 action：pnpm 10 + Node 22 + 前端依赖
 │   └── workflows/ci.yml           # 三 job：frontend / backend / e2e(matrix chromium+webkit)
 ├── docs/
-│   ├── 1.md / 2.md / 1.png        # 既有设计文档
+│   ├── archive/                   # 早期设计文档（system-design.md / ui-wireframe.md）
 │   ├── phase_plan.md              # 新增阶段末文档交付强约束（§3 头部）
 │   ├── api_contract.md            # 冻结 v0.1.0 合同：POST /api/bundles/batch
 │   └── phases/

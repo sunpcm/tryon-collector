@@ -88,6 +88,16 @@ export function MeltingPot({ children }: MeltingPotProps) {
     return () => document.removeEventListener('paste', handlePaste);
   }, [processFiles, setCellFile]);
 
+  // Cleanup blob URLs on page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      const { files: allFiles } = useMatrixStore.getState();
+      for (const f of allFiles) URL.revokeObjectURL(f.blobUrl);
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, []);
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

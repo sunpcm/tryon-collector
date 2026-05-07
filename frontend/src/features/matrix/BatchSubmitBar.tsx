@@ -73,6 +73,17 @@ export function BatchSubmitBar({
         setRowSubmitStatus(rejected.group_key, 'rejected');
       }
 
+      // Revoke blob URLs for accepted rows
+      const acceptedKeys = new Set(response.accepted.map(a => a.group_key));
+      for (const row of readyRows) {
+        if (acceptedKeys.has(row.groupKey)) {
+          for (const role of REQUIRED_ROLES) {
+            const main = row.cells[role].main;
+            if (main) URL.revokeObjectURL(main.blobUrl);
+          }
+        }
+      }
+
       if (response.rejected.length === 0) {
         showToast(
           `全部 ${response.accepted.length} 个任务包提交成功`,
@@ -81,10 +92,6 @@ export function BatchSubmitBar({
         // Update gamification counter
         incrementSubmitCount(response.accepted.length);
         window.dispatchEvent(new Event('submit-count-changed'));
-        // Revoke all ObjectURLs
-        for (const f of files) {
-          URL.revokeObjectURL(f.blobUrl);
-        }
         clearAll();
       } else {
         showToast(

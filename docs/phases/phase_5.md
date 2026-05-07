@@ -48,6 +48,7 @@
 | 修复 | commit | 说明 |
 |------|--------|------|
 | 未归类文件不显示 | `50d36bd` | 所有文件不匹配聚类正则时，UI 无变化。改用 `files.length` 判断，确保未归类区始终可见 |
+| Blob URL 内存泄漏 | — | `revokeObjectURL` 覆盖不完整，反复拖拽导致内存无限增长。修复：store 的 `clearAll`/`clearUnassigned`/`removeFile`/`setCellFile` 均释放旧 URL；提交时按 accepted 行释放；`beforeunload` 兜底清理 |
 
 ## 6. 配置项
 

@@ -79,6 +79,10 @@ tryon-collector/
 │   ├── .staging/           上传中间态
 │   └── dispatch_log/       分发审计日志
 ├── docs/                   设计文档 + 阶段总结
+│   ├── phase_plan.md       实施基线
+│   ├── api_contract.md     API 契约（v0.1.0 冻结）
+│   ├── phases/             阶段总结（phase_0 ~ phase_5）
+│   └── archive/            早期设计文档归档
 └── Makefile                统一命令入口
 ```
 
@@ -177,4 +181,5 @@ nohup ./scripts/run.sh > tryon.log 2>&1 &
 | `docs/phases/phase_2.md` | Phase 2 总结（含手动测试清单） |
 | `docs/phases/phase_3.md` | Phase 3 总结 |
 | `docs/phases/phase_4.md` | Phase 4 总结 |
-| `docs/HOW_TO_RESUME.md` | 跨会话续接指南 |
+| `docs/phases/phase_5.md` | Phase 5 总结（加固与交付） |
+| `docs/archive/` | 早期设计文档归档（系统设计、UI 草图、跨会话指南） |

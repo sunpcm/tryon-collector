@@ -1,2 +1,2 @@
-export { submitBundlesBatch, buildFileFieldName } from './client';
-export type { SubmitBundlePayload } from './client';
+export { submitBundlesBatch, buildFileFieldName, fetchAuditBundles } from './client';
+export type { SubmitBundlePayload, AuditBundle, AuditResponse } from './client';

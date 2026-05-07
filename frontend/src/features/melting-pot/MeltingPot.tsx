@@ -1,8 +1,9 @@
 import { useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useMatrixStore } from '@/store';
+import { useMatrixStore, useClusterConfigStore } from '@/store';
 import { cluster } from '@/features/clustering';
-import type { FileMeta } from '@/types';
+import { ROLES } from '@/types';
+import type { FileMeta, Role } from '@/types';
 
 let fileIdCounter = 0;
 
@@ -22,7 +23,8 @@ interface MeltingPotProps {
 }
 
 export function MeltingPot({ children }: MeltingPotProps) {
-  const { files, addFiles, setClusterResult } = useMatrixStore();
+  const { files, addFiles, setClusterResult, setCellFile } = useMatrixStore();
+  const clusterConfig = useClusterConfigStore(s => s.config);
 
   const processFiles = useCallback(
     (newFiles: File[]) => {
@@ -34,10 +36,10 @@ export function MeltingPot({ children }: MeltingPotProps) {
 
       const allFiles = [...files, ...metas];
       addFiles(metas);
-      const result = cluster(allFiles);
+      const result = cluster(allFiles, clusterConfig);
       setClusterResult(result);
     },
-    [files, addFiles, setClusterResult]
+    [files, addFiles, setClusterResult, clusterConfig]
   );
 
   const onDrop = useCallback(
@@ -68,15 +70,56 @@ export function MeltingPot({ children }: MeltingPotProps) {
         }
       }
 
-      if (imageFiles.length > 0) {
-        e.preventDefault();
-        processFiles(imageFiles);
+      if (imageFiles.length === 0) return;
+      e.preventDefault();
+
+      // Route to selected cell if one is active
+      const selected = useMatrixStore.getState().selectedCell;
+      if (selected && imageFiles.length > 0) {
+        const meta = fileToFileMeta(imageFiles[0]);
+        setCellFile(selected.groupKey, selected.role, meta);
+        return;
       }
+
+      processFiles(imageFiles);
     };
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [processFiles]);
+  }, [processFiles, setCellFile]);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in an input/textarea
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      const store = useMatrixStore.getState();
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const btn = document.querySelector<HTMLButtonElement>(
+          '[data-testid="submit-btn"]'
+        );
+        if (btn && !btn.disabled) btn.click();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        store.clearUnassigned();
+        store.setSelectedCell(null);
+      } else if (e.key >= '1' && e.key <= '4') {
+        const selected = store.selectedCell;
+        if (!selected) return;
+        e.preventDefault();
+        const roleIndex = parseInt(e.key) - 1;
+        const role = ROLES[roleIndex] as Role;
+        store.setSelectedCell({ groupKey: selected.groupKey, role });
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div {...getRootProps()} className="relative min-h-screen">

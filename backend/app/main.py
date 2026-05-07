@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import ingest
+from app.routers import audit, ingest
 from app.services.idempotency import cleanup_stale_staging
 
 
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "mode": os.getenv("VITE_API_MODE", "live")}
 
     app.include_router(ingest.router, prefix="/api", tags=["ingest"])
+    app.include_router(audit.router, prefix="/api", tags=["audit"])
     return app
 
 

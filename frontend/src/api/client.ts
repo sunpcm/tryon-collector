@@ -43,3 +43,42 @@ export async function submitBundlesBatch(
 export function buildFileFieldName(groupKey: string, role: Role): string {
   return `file_${groupKey}_${role}`;
 }
+
+export interface AuditBundle {
+  task_id: string;
+  submit_id: string;
+  designer_id: string;
+  business_line: string;
+  category: string;
+  group_key: string;
+  upload_time: string;
+  has_annotation: boolean;
+  optional_notes?: string;
+  files: Record<string, { filename: string; mime: string; sha256: string; bytes: number }>;
+}
+
+export interface AuditResponse {
+  total: number;
+  offset: number;
+  limit: number;
+  bundles: AuditBundle[];
+}
+
+export async function fetchAuditBundles(params: {
+  designer_id?: string;
+  category?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<AuditResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.designer_id) searchParams.set('designer_id', params.designer_id);
+  if (params.category) searchParams.set('category', params.category);
+  if (params.limit !== undefined) searchParams.set('limit', String(params.limit));
+  if (params.offset !== undefined) searchParams.set('offset', String(params.offset));
+
+  const res = await fetch(`${API_BASE_URL}/api/audit/bundles?${searchParams}`);
+  if (!res.ok) {
+    throw new Error(`Audit fetch failed (${res.status})`);
+  }
+  return res.json();
+}

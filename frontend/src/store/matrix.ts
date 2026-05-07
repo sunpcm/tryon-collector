@@ -18,7 +18,9 @@ interface MatrixState {
   addFiles: (files: FileMeta[]) => void;
   removeFile: (fileId: string) => void;
   clearAll: () => void;
+  clearUnassigned: () => void;
   setSelectedCell: (cell: { groupKey: string; role: Role } | null) => void;
+  setCellFile: (groupKey: string, role: Role, file: FileMeta) => void;
   setRowSubmitStatus: (groupKey: string, status: RowSubmitStatus) => void;
   getReadyRows: () => MatrixRow[];
   isAllReady: () => boolean;
@@ -56,7 +58,23 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
       selectedCell: null,
     }),
 
+  clearUnassigned: () => set({ unassigned: [] }),
+
   setSelectedCell: cell => set({ selectedCell: cell }),
+
+  setCellFile: (groupKey, role, file) =>
+    set(state => ({
+      matrix: state.matrix.map(row => {
+        if (row.groupKey !== groupKey) return row;
+        return {
+          ...row,
+          cells: {
+            ...row.cells,
+            [role]: { ...row.cells[role], main: file },
+          },
+        };
+      }),
+    })),
 
   setRowSubmitStatus: (groupKey, status) =>
     set(state => ({

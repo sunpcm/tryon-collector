@@ -1,33 +1,38 @@
 import { useState } from 'react';
+import { Route, Switch, Link } from 'wouter';
 import { NicknameModal, IdentityBadge } from '@/features/identity';
 import { TagSelector } from '@/features/tagging';
 import { MeltingPot } from '@/features/melting-pot';
 import { MatrixView, BatchSubmitBar } from '@/features/matrix';
+import { GamificationSidebar } from '@/features/gamification';
+import { AuditPage } from '@/features/audit';
 import { ToastContainer } from '@/components/Toast';
 import { useMatrixStore } from '@/store';
 
-function App() {
+function MainPage() {
   const [businessLine, setBusinessLine] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const { matrix, clearAll } = useMatrixStore();
 
   return (
-    <>
-      <NicknameModal />
-      <ToastContainer />
-
-      <MeltingPot>
-        <div className="min-h-screen bg-gray-50">
-          {/* Top Nav */}
-          <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-gray-800">
-              Tryon Collector
-            </h1>
+    <MeltingPot>
+      <div className="min-h-screen bg-gray-50">
+        {/* Top Nav */}
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-gray-800">
+            Tryon Collector
+          </h1>
+          <div className="flex items-center gap-4">
+            <Link href="/audit" className="text-sm text-blue-500 hover:text-blue-600">
+              审计页
+            </Link>
             <IdentityBadge />
-          </header>
+          </div>
+        </header>
 
-          {/* Main Content */}
-          <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {/* Main Content */}
+        <div className="max-w-6xl mx-auto px-4 py-6 flex gap-6">
+          <main className="flex-1 space-y-6">
             {/* Tag Selector */}
             <section className="bg-white rounded-lg p-4 border border-gray-200">
               <TagSelector
@@ -71,8 +76,26 @@ function App() {
               </section>
             )}
           </main>
+
+          {/* Sidebar */}
+          <aside className="w-64 shrink-0">
+            <GamificationSidebar />
+          </aside>
         </div>
-      </MeltingPot>
+      </div>
+    </MeltingPot>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <NicknameModal />
+      <ToastContainer />
+      <Switch>
+        <Route path="/audit" component={AuditPage} />
+        <Route component={MainPage} />
+      </Switch>
     </>
   );
 }

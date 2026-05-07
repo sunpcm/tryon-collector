@@ -3,6 +3,7 @@ import { useMatrixStore, useIdentityStore } from '@/store';
 import { submitBundlesBatch, buildFileFieldName } from '@/api';
 import { showToast } from '@/components/Toast';
 import { ProgressBar } from '@/components/ProgressBar';
+import { incrementSubmitCount } from '@/features/gamification';
 import { REQUIRED_ROLES } from '@/types';
 import type { BundleMeta, Role } from '@/types';
 
@@ -44,11 +45,9 @@ export function BatchSubmitBar({
           const fieldName = buildFileFieldName(row.groupKey, role);
           filesRecord[role] = fieldName;
           // Use original File reference if available, otherwise fetch from blobUrl
-          const file =
-            main.file ??
-            (await fetch(main.blobUrl)
-              .then(r => r.blob())
-              .then(blob => new File([blob], main.name, { type: main.type })));
+          const file: File = main.file ?? await fetch(main.blobUrl)
+            .then(r => r.blob())
+            .then(blob => new File([blob], main.name, { type: main.type }));
           fileMap[fieldName] = file;
         }
       }
@@ -79,6 +78,9 @@ export function BatchSubmitBar({
           `全部 ${response.accepted.length} 个任务包提交成功`,
           'success'
         );
+        // Update gamification counter
+        incrementSubmitCount(response.accepted.length);
+        window.dispatchEvent(new Event('submit-count-changed'));
         // Revoke all ObjectURLs
         for (const f of files) {
           URL.revokeObjectURL(f.blobUrl);
@@ -125,6 +127,7 @@ export function BatchSubmitBar({
         </div>
       )}
       <button
+        data-testid="submit-btn"
         disabled={!allReady || !nickname || submitting}
         onClick={handleSubmit}
         className={`px-6 py-2 rounded-md font-medium text-sm transition-colors ${

@@ -44,37 +44,53 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
       files: [...state.files, ...newFiles],
     })),
 
-  removeFile: fileId =>
+  removeFile: fileId => {
+    const file = get().files.find(f => f.id === fileId);
+    if (file) URL.revokeObjectURL(file.blobUrl);
     set(state => ({
       files: state.files.filter(f => f.id !== fileId),
-    })),
+    }));
+  },
 
-  clearAll: () =>
+  clearAll: () => {
+    const { files } = get();
+    for (const f of files) URL.revokeObjectURL(f.blobUrl);
     set({
       files: [],
       matrix: [],
       unassigned: [],
       rowSubmitStatuses: {},
       selectedCell: null,
-    }),
+    });
+  },
 
-  clearUnassigned: () => set({ unassigned: [] }),
+  clearUnassigned: () => {
+    const { unassigned } = get();
+    for (const f of unassigned) URL.revokeObjectURL(f.blobUrl);
+    set({ unassigned: [] });
+  },
 
   setSelectedCell: cell => set({ selectedCell: cell }),
 
   setCellFile: (groupKey, role, file) =>
-    set(state => ({
-      matrix: state.matrix.map(row => {
-        if (row.groupKey !== groupKey) return row;
-        return {
-          ...row,
-          cells: {
-            ...row.cells,
-            [role]: { ...row.cells[role], main: file },
-          },
-        };
-      }),
-    })),
+    set(state => {
+      // Revoke old blob URL if replacing
+      const row = state.matrix.find(r => r.groupKey === groupKey);
+      const old = row?.cells[role]?.main;
+      if (old) URL.revokeObjectURL(old.blobUrl);
+      return {
+        matrix: state.matrix.map(r => {
+          if (r.groupKey !== groupKey) return r;
+          return {
+            ...r,
+            cells: {
+              ...r.cells,
+              [role]: { ...r.cells[role], main: file },
+            },
+          };
+        }),
+      };
+    }),
 
   setRowSubmitStatus: (groupKey, status) =>
     set(state => ({

@@ -11,13 +11,11 @@ import json
 import re
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Request, UploadFile
+from fastapi import APIRouter, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from app.services.bundle import BundleSaveError, save_bundle
-from app.services.dispatcher import DispatchError, dispatch_bundle
 from app.services.idempotency import get_idempotency, set_idempotency
-from app.services.retry_queue import enqueue, process_queue
 from app.services.tags import get_tags
 from app.testing import handle_mock_submit
 
@@ -34,7 +32,7 @@ def _err(code: int, detail: str) -> JSONResponse:
 
 
 @router.post("/bundles/batch")
-async def submit_bundles_batch(request: Request, background_tasks: BackgroundTasks) -> JSONResponse:
+async def submit_bundles_batch(request: Request) -> JSONResponse:
     # E2E mock mode: validate + return mock data, no filesystem writes
     if request.headers.get("x-tryon-mode") == "e2e":
         return await handle_mock_submit(request)
@@ -167,12 +165,6 @@ async def submit_bundles_batch(request: Request, background_tasks: BackgroundTas
 
         try:
             task_id = save_bundle(client_submit_id, group_key, files, meta)
-            # dispatch symlinks to img-dc training dir
-            try:
-                dispatch_bundle(task_id)
-            except DispatchError as exc:
-                enqueue(task_id, str(exc))
-                background_tasks.add_task(process_queue)
             accepted.append({"group_key": group_key, "task_id": task_id})
         except BundleSaveError as exc:
             reason = "disk_full" if "No space left" in str(exc) else "internal_error"

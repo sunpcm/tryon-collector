@@ -79,6 +79,7 @@ def save_bundle(
             "business_line": meta.get("business_line", ""),
             "category": meta.get("category", ""),
             "optional_notes": meta.get("optional_notes", ""),
+            "title": meta.get("title", ""),
             "group_key": group_key,
             "upload_time": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "has_annotation": any(r == "annotated" for r, *_ in files),

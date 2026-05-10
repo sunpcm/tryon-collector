@@ -25,7 +25,7 @@ export function ManualSubmitBar({
   const [title, setTitle] = useState('');
 
   const ready = isManualReady();
-  const canSubmit = ready && !!nickname && !!title.trim() && !submitting;
+  const canSubmit = ready && !!nickname && !submitting;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -33,7 +33,7 @@ export function ManualSubmitBar({
     setSubmitting(true);
     setProgress(0);
 
-    const groupKey = title.trim();
+    const groupKey = crypto.randomUUID();
     const clientSubmitId = crypto.randomUUID();
 
     const resolveFile = async (f: (typeof manualFiles)[Role][number]): Promise<File> =>
@@ -65,6 +65,7 @@ export function ManualSubmitBar({
         designer_id: nickname,
         business_line: businessLine,
         category,
+        title: title.trim(),
         client_submit_id: clientSubmitId,
         bundles,
         files: fileMap,
@@ -148,11 +149,6 @@ export function ManualSubmitBar({
         {totalCount > 0 && !ready && (
           <span className="text-xs text-gray-400">
             需要产品图、试穿图、精修图各至少 1 张
-          </span>
-        )}
-        {ready && !title.trim() && (
-          <span className="text-xs text-gray-400">
-            请输入款号
           </span>
         )}
       </div>

@@ -6,6 +6,7 @@ export interface SubmitBundlePayload {
   business_line: string;
   category: string;
   optional_notes?: string;
+  title?: string;
   client_submit_id: string;
   bundles: BundleMeta[];
   files: Record<string, File>; // field name -> File
@@ -20,6 +21,7 @@ export async function submitBundlesBatch(
   formData.append('business_line', payload.business_line);
   formData.append('category', payload.category);
   formData.append('optional_notes', payload.optional_notes || '');
+  formData.append('title', payload.title || '');
   formData.append('client_submit_id', payload.client_submit_id);
   formData.append('bundles', JSON.stringify(payload.bundles));
 
@@ -55,6 +57,7 @@ export interface AuditBundle {
   business_line: string;
   category: string;
   group_key: string;
+  title?: string;
   upload_time: string;
   has_annotation: boolean;
   optional_notes?: string;

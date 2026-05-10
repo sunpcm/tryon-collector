@@ -96,6 +96,9 @@ export function AuditPage() {
                   款号
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
+                  标题
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
                   花名
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
@@ -119,7 +122,7 @@ export function AuditPage() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     加载中...
@@ -128,7 +131,7 @@ export function AuditPage() {
               ) : bundles.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     暂无数据
@@ -139,6 +142,9 @@ export function AuditPage() {
                   <tr key={b.task_id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 font-mono text-xs">
                       {b.group_key}
+                    </td>
+                    <td className="px-4 py-2 text-xs">
+                      {b.title || '—'}
                     </td>
                     <td className="px-4 py-2">{b.designer_id}</td>
                     <td className="px-4 py-2">{b.category}</td>

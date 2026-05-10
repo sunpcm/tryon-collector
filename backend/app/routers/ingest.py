@@ -73,6 +73,8 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
     if len(optional_notes) > 500:
         return _err(422, "invalid_optional_notes")
 
+    title = (form.get("title") or "").strip()[:200]
+
     client_submit_id = str(form.get("client_submit_id", ""))
     try:
         uuid.UUID(client_submit_id, version=4)
@@ -106,6 +108,7 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
         "business_line": business_line,
         "category": category,
         "optional_notes": optional_notes,
+        "title": title,
     }
     accepted: list[dict] = []
     rejected: list[dict] = []

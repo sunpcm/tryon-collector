@@ -22,16 +22,18 @@ export function ManualSubmitBar({
   const { nickname } = useIdentityStore();
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [title, setTitle] = useState('');
 
   const ready = isManualReady();
+  const canSubmit = ready && !!nickname && !!title.trim() && !submitting;
 
   const handleSubmit = useCallback(async () => {
-    if (!ready || !nickname || submitting) return;
+    if (!canSubmit) return;
 
     setSubmitting(true);
     setProgress(0);
 
-    const groupKey = crypto.randomUUID();
+    const groupKey = title.trim();
     const clientSubmitId = crypto.randomUUID();
 
     const resolveFile = async (f: (typeof manualFiles)[Role][number]): Promise<File> =>
@@ -76,6 +78,7 @@ export function ManualSubmitBar({
         incrementSubmitCount(response.accepted.length);
         window.dispatchEvent(new Event('submit-count-changed'));
         clearManual();
+        setTitle('');
       } else {
         showToast(
           `${response.accepted.length} 成功，${response.rejected.length} 失败`,
@@ -92,9 +95,8 @@ export function ManualSubmitBar({
       setProgress(100);
     }
   }, [
-    ready,
-    nickname,
-    submitting,
+    canSubmit,
+    title,
     manualFiles,
     businessLine,
     category,
@@ -107,38 +109,53 @@ export function ManualSubmitBar({
     manualFiles.retouched.length +
     manualFiles.annotated.length;
 
-  if (totalCount === 0) return null;
-
   return (
-    <div className="flex items-center gap-4 py-3">
-      {submitting && (
-        <div className="flex-1">
-          <ProgressBar value={progress} showLabel />
-        </div>
-      )}
-      <button
-        data-testid="submit-btn"
-        disabled={!ready || !nickname || submitting}
-        onClick={handleSubmit}
-        className={`px-6 py-2 rounded-md font-medium text-sm transition-colors ${
-          ready && nickname && !submitting
-            ? 'bg-blue-500 text-white hover:bg-blue-600'
-            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-        }`}
-      >
-        {submitting ? '提交中...' : '提交'}
-      </button>
-      <button
-        onClick={clearManual}
-        className="text-sm text-gray-400 hover:text-red-500"
-      >
-        清空
-      </button>
-      {!ready && totalCount > 0 && (
-        <span className="text-xs text-gray-400">
-          需要产品图、试穿图、精修图各至少 1 张
-        </span>
-      )}
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
+      <div className="mb-3">
+        <label className="block text-xs text-gray-500 mb-1">款号（标题）</label>
+        <input
+          type="text"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="输入款号，如 SKU12345"
+          className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+        />
+      </div>
+      <div className="flex items-center gap-4">
+        {submitting && (
+          <div className="flex-1">
+            <ProgressBar value={progress} showLabel />
+          </div>
+        )}
+        <button
+          data-testid="submit-btn"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+          className={`px-6 py-2 rounded-md font-medium text-sm transition-colors ${
+            canSubmit
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          {submitting ? '提交中...' : '提交'}
+        </button>
+        <button
+          onClick={clearManual}
+          className="text-sm text-gray-400 hover:text-red-500"
+        >
+          清空
+        </button>
+        {totalCount > 0 && !ready && (
+          <span className="text-xs text-gray-400">
+            需要产品图、试穿图、精修图各至少 1 张
+          </span>
+        )}
+        {ready && !title.trim() && (
+          <span className="text-xs text-gray-400">
+            请输入款号
+          </span>
+        )}
+      </div>
     </div>
   );
 }

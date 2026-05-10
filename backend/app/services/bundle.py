@@ -11,7 +11,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import BinaryIO
 
-MIME_TO_EXT = {"image/jpeg": ".jpg", "image/png": ".png"}
+MIME_TO_EXT = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/tiff": ".tiff",
+    "image/bmp": ".bmp",
+    "image/heic": ".heic",
+    "image/heif": ".heif",
+    "image/gif": ".gif",
+}
 STORAGE_ROOT = Path(os.getenv("STORAGE_ROOT", "storage"))
 
 

@@ -36,7 +36,7 @@ export function RoleBox({ role }: RoleBoxProps) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/jpeg': [], 'image/png': [] },
+    accept: { 'image/*': [] },
   });
 
   const isRequired = role !== 'annotated';

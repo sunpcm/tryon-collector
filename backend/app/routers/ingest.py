@@ -22,7 +22,16 @@ from app.testing import handle_mock_submit
 router = APIRouter()
 
 _GROUP_KEY_RE = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
-_ALLOWED_MIMES = {"image/jpeg", "image/png"}
+_ALLOWED_MIMES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/tiff",
+    "image/bmp",
+    "image/heic",
+    "image/heif",
+    "image/gif",
+}
 _MAX_FILE_BYTES = 20 * 1024 * 1024  # 20 MB
 
 

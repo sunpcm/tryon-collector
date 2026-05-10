@@ -70,3 +70,28 @@
 
 - 后端：58 个测试全部通过，ruff lint clean
 - 前端：71 个测试全部通过
+
+---
+
+## 附：手动分拣模式
+
+> 日期：2026-05-10
+
+### 背景
+
+设计师文件命名不规则，自动聚类识别率低。改为默认显示四个角色框，设计师手动拖入对应框。
+
+### 改动
+
+- `src/store/matrix.ts` — 新增 `manualFiles` state + `addManualFiles` / `removeManualFile` / `clearManual` / `isManualReady`
+- `src/features/manual-sort/RoleBox.tsx` — 新增：单个角色框（Dropzone + 缩略图 + 删除）
+- `src/features/manual-sort/ManualSort.tsx` — 新增：四框布局容器
+- `src/features/manual-sort/ManualSubmitBar.tsx` — 新增：手动模式提交栏
+- `src/App.tsx` — 默认手动模式，可切换到自动聚类
+
+### 交互
+
+1. 默认：四框（产品图/试穿图/精修图/标注图），每框独立 Dropzone
+2. 拖入/点击添加图片，hover 显示删除按钮
+3. 提交时 groupKey 自动生成 UUID
+4. 点击「切换自动聚类」可切回旧模式

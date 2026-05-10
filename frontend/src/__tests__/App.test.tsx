@@ -60,9 +60,12 @@ describe('App Component', () => {
     expect(screen.getByText('欢迎使用 Tryon Collector')).toBeInTheDocument();
   });
 
-  it('shows dropzone hint when no files', () => {
+  it('shows manual sort boxes by default', () => {
     render(<App />);
-    expect(screen.getByText(/将图片拖入窗口/)).toBeInTheDocument();
+    expect(screen.getByText(/产品图/)).toBeInTheDocument();
+    expect(screen.getByText(/试穿图/)).toBeInTheDocument();
+    expect(screen.getByText(/精修图/)).toBeInTheDocument();
+    expect(screen.getByText(/标注图/)).toBeInTheDocument();
   });
 
   it('renders tag selectors', () => {

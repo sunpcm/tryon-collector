@@ -13,6 +13,7 @@ interface MatrixState {
   unassigned: FileMeta[];
   rowSubmitStatuses: Record<string, RowSubmitStatus>;
   selectedCell: { groupKey: string; role: Role } | null;
+  manualFiles: Record<Role, FileMeta[]>;
 
   setClusterResult: (result: ClusterResult) => void;
   addFiles: (files: FileMeta[]) => void;
@@ -24,6 +25,10 @@ interface MatrixState {
   setRowSubmitStatus: (groupKey: string, status: RowSubmitStatus) => void;
   getReadyRows: () => MatrixRow[];
   isAllReady: () => boolean;
+  addManualFiles: (role: Role, files: FileMeta[]) => void;
+  removeManualFile: (role: Role, fileId: string) => void;
+  clearManual: () => void;
+  isManualReady: () => boolean;
 }
 
 export const useMatrixStore = create<MatrixState>((set, get) => ({
@@ -32,6 +37,7 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
   unassigned: [],
   rowSubmitStatuses: {},
   selectedCell: null,
+  manualFiles: { product: [], tryon: [], retouched: [], annotated: [] },
 
   setClusterResult: result =>
     set({
@@ -53,14 +59,18 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
   },
 
   clearAll: () => {
-    const { files } = get();
+    const { files, manualFiles } = get();
     for (const f of files) URL.revokeObjectURL(f.blobUrl);
+    for (const role of Object.keys(manualFiles) as Role[]) {
+      for (const f of manualFiles[role]) URL.revokeObjectURL(f.blobUrl);
+    }
     set({
       files: [],
       matrix: [],
       unassigned: [],
       rowSubmitStatuses: {},
       selectedCell: null,
+      manualFiles: { product: [], tryon: [], retouched: [], annotated: [] },
     });
   },
 
@@ -105,6 +115,44 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
       matrix.length > 0 &&
       matrix.every(r => r.status === 'ready') &&
       unassigned.length === 0
+    );
+  },
+
+  addManualFiles: (role, newFiles) =>
+    set(state => ({
+      manualFiles: {
+        ...state.manualFiles,
+        [role]: [...state.manualFiles[role], ...newFiles],
+      },
+    })),
+
+  removeManualFile: (role, fileId) => {
+    const file = get().manualFiles[role].find(f => f.id === fileId);
+    if (file) URL.revokeObjectURL(file.blobUrl);
+    set(state => ({
+      manualFiles: {
+        ...state.manualFiles,
+        [role]: state.manualFiles[role].filter(f => f.id !== fileId),
+      },
+    }));
+  },
+
+  clearManual: () => {
+    const { manualFiles } = get();
+    for (const role of Object.keys(manualFiles) as Role[]) {
+      for (const f of manualFiles[role]) URL.revokeObjectURL(f.blobUrl);
+    }
+    set({
+      manualFiles: { product: [], tryon: [], retouched: [], annotated: [] },
+    });
+  },
+
+  isManualReady: () => {
+    const { manualFiles } = get();
+    return (
+      manualFiles.product.length > 0 &&
+      manualFiles.tryon.length > 0 &&
+      manualFiles.retouched.length > 0
     );
   },
 }));

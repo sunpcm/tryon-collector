@@ -11,13 +11,13 @@ import pytest
 from app.services.bundle import BundleSaveError, save_bundle
 
 
-def _fake_files(roles: list[str] = None) -> dict:
+def _fake_files(roles: list[str] = None) -> list[tuple[str, str, io.BytesIO, str]]:
     if roles is None:
         roles = ["product", "tryon", "retouched"]
-    return {
-        role: (f"{role}.jpg", io.BytesIO(b"fake-image-data-" + role.encode()), "image/jpeg")
+    return [
+        (role, f"{role}.jpg", io.BytesIO(b"fake-image-data-" + role.encode()), "image/jpeg")
         for role in roles
-    }
+    ]
 
 
 def _meta() -> dict:
@@ -43,13 +43,14 @@ def test_save_bundle_happy_path(tmp_path):
     assert meta["designer_id"] == "张三"
     assert meta["has_annotation"] is False
     assert set(meta["files"].keys()) == {"product", "tryon", "retouched"}
-    for role_meta in meta["files"].values():
-        assert len(role_meta["sha256"]) == 64
-        assert role_meta["bytes"] > 0
+    for role_metas in meta["files"].values():
+        assert len(role_metas) == 1
+        assert len(role_metas[0]["sha256"]) == 64
+        assert role_metas[0]["bytes"] > 0
 
-    assert (dest / "product.jpg").exists()
-    assert (dest / "tryon.jpg").exists()
-    assert (dest / "retouched.jpg").exists()
+    assert (dest / "product_0.jpg").exists()
+    assert (dest / "tryon_0.jpg").exists()
+    assert (dest / "retouched_0.jpg").exists()
 
     staging = tmp_path / ".staging" / task_id
     assert not staging.exists()
@@ -72,7 +73,7 @@ def test_save_bundle_cleans_staging_on_error(tmp_path):
     def bad_read():
         raise OSError("disk full")
 
-    files["product"] = ("product.jpg", type("F", (), {"read": bad_read})(), "image/jpeg")
+    files[0] = ("product", "product.jpg", type("F", (), {"read": bad_read})(), "image/jpeg")
 
     with patch("app.services.bundle.STORAGE_ROOT", tmp_path), pytest.raises(BundleSaveError):
             save_bundle("submit-003", "SKU_ERR", files, _meta())
@@ -83,14 +84,14 @@ def test_save_bundle_cleans_staging_on_error(tmp_path):
 
 
 def test_save_bundle_png_extension(tmp_path):
-    files = {
-        role: (f"{role}.png", io.BytesIO(b"png-data"), "image/png")
+    files = [
+        (role, f"{role}.png", io.BytesIO(b"png-data"), "image/png")
         for role in ["product", "tryon", "retouched"]
-    }
+    ]
     with patch("app.services.bundle.STORAGE_ROOT", tmp_path):
         task_id = save_bundle("submit-004", "SKU_PNG", files, _meta())
 
     dest = tmp_path / "raw_ingestion" / task_id
-    assert (dest / "product.png").exists()
+    assert (dest / "product_0.png").exists()
     meta = json.loads((dest / "metadata.json").read_text())
-    assert meta["files"]["product"]["mime"] == "image/png"
+    assert meta["files"]["product"][0]["mime"] == "image/png"

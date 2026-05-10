@@ -106,13 +106,15 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
         file_refs: dict = bm.get("files", {})
 
         # collect UploadFile objects for required + optional roles
-        files: dict[str, tuple[str, object, str]] = {}
+        import io
+
+        files: list[tuple[str, str, object, str]] = []
         bundle_error: dict | None = None
 
         for role in ("product", "tryon", "retouched", "annotated"):
             required = role != "annotated"
-            field_name = file_refs.get(role)
-            if field_name is None:
+            field_names = file_refs.get(role)
+            if field_names is None:
                 if required:
                     bundle_error = {
                         "group_key": group_key,
@@ -122,38 +124,50 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
                     break
                 continue
 
-            upload: UploadFile | None = form.get(field_name)
-            if upload is None or not hasattr(upload, "read"):
-                if required:
+            # Normalize: accept both string (legacy) and list
+            if isinstance(field_names, str):
+                field_names = [field_names]
+
+            if required and len(field_names) == 0:
+                bundle_error = {
+                    "group_key": group_key,
+                    "reason": "missing_role",
+                    "detail": f"bundles[].files.{role} is empty",
+                }
+                break
+
+            for field_name in field_names:
+                upload: UploadFile | None = form.get(field_name)
+                if upload is None or not hasattr(upload, "read"):
                     bundle_error = {
                         "group_key": group_key,
                         "reason": "missing_role",
                         "detail": f"file field {field_name} not present",
                     }
                     break
-                continue
 
-            mime = upload.content_type or ""
-            if mime not in _ALLOWED_MIMES:
-                bundle_error = {
-                    "group_key": group_key,
-                    "reason": "invalid_mime",
-                    "detail": f"{field_name} has unsupported MIME {mime!r}",
-                }
+                mime = upload.content_type or ""
+                if mime not in _ALLOWED_MIMES:
+                    bundle_error = {
+                        "group_key": group_key,
+                        "reason": "invalid_mime",
+                        "detail": f"{field_name} has unsupported MIME {mime!r}",
+                    }
+                    break
+
+                data = await upload.read()
+                if len(data) > _MAX_FILE_BYTES:
+                    bundle_error = {
+                        "group_key": group_key,
+                        "reason": "file_too_large",
+                        "detail": f"{field_name} exceeds 20 MB",
+                    }
+                    break
+
+                files.append((role, upload.filename or field_name, io.BytesIO(data), mime))
+
+            if bundle_error:
                 break
-
-            data = await upload.read()
-            if len(data) > _MAX_FILE_BYTES:
-                bundle_error = {
-                    "group_key": group_key,
-                    "reason": "file_too_large",
-                    "detail": f"{field_name} exceeds 20 MB",
-                }
-                break
-
-            import io
-
-            files[role] = (upload.filename or field_name, io.BytesIO(data), mime)
 
         if bundle_error:
             rejected.append(bundle_error)

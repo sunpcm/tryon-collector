@@ -84,21 +84,33 @@ async def handle_mock_submit(request: Request) -> JSONResponse:
         # check required roles exist in form
         bundle_error: dict | None = None
         for role in ("product", "tryon", "retouched"):
-            field_name = file_refs.get(role)
-            if field_name is None:
+            field_names = file_refs.get(role)
+            if field_names is None:
                 bundle_error = {
                     "group_key": group_key,
                     "reason": "missing_role",
                     "detail": f"bundles[].files.{role} not declared",
                 }
                 break
-            upload = form.get(field_name)
-            if upload is None or not hasattr(upload, "read"):
+            if isinstance(field_names, str):
+                field_names = [field_names]
+            if len(field_names) == 0:
                 bundle_error = {
                     "group_key": group_key,
                     "reason": "missing_role",
-                    "detail": f"file field {field_name} not present",
+                    "detail": f"bundles[].files.{role} is empty",
                 }
+                break
+            for field_name in field_names:
+                upload = form.get(field_name)
+                if upload is None or not hasattr(upload, "read"):
+                    bundle_error = {
+                        "group_key": group_key,
+                        "reason": "missing_role",
+                        "detail": f"file field {field_name} not present",
+                    }
+                    break
+            if bundle_error:
                 break
 
         if bundle_error:

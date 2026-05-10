@@ -55,7 +55,7 @@ export interface ClusterConfig {
 
 export interface BundleMeta {
   group_key: string;
-  files: Record<Role, string>; // role -> form field name
+  files: Record<Role, string[]>; // role -> form field names (array)
 }
 
 export interface BatchSubmitResponse {

@@ -144,7 +144,7 @@ export function AuditPage() {
                       {new Date(b.upload_time).toLocaleString('zh-CN')}
                     </td>
                     <td className="px-4 py-2 text-xs">
-                      {Object.keys(b.files).length}
+                      {Object.values(b.files).reduce((s, arr) => s + arr.length, 0)}
                       {b.has_annotation && (
                         <span className="ml-1 text-blue-500">(含标注)</span>
                       )}

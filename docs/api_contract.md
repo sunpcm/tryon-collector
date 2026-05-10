@@ -58,13 +58,15 @@ type Role = "product" | "tryon" | "retouched" | "annotated";
 interface BundleMeta {
   group_key: string;           // 款号，前端聚类产生，[A-Za-z0-9_-]{3,64}
   files: {
-    product: string;           // 指向 form 中的 file_<group_key>_product 字段名
-    tryon: string;
-    retouched: string;
-    annotated?: string;        // 可选
+    product: string[];         // 指向 form 中的 file 字段名（数组，支持多图）
+    tryon: string[];
+    retouched: string[];
+    annotated?: string[];      // 可选
   };
 }
 ```
+
+> 向后兼容：`files` 中每个角色的值也接受单个 string（自动包装为 `[string]`）。
 
 **示例**（两个 Bundle）：
 ```
@@ -168,10 +170,11 @@ Content-Type: image/jpeg
 ```
 storage/
 ├── raw_ingestion/<task_id>/
-│   ├── product.jpg            # 统一扩展名由 MIME 决定（.jpg / .png）
-│   ├── tryon.jpg
-│   ├── retouched.jpg
-│   ├── annotated.jpg          # 若 bundle 提供
+│   ├── product_0.jpg          # 统一扩展名由 MIME 决定（.jpg / .png）
+│   ├── product_1.jpg          # 同角色多图时带索引
+│   ├── tryon_0.jpg
+│   ├── retouched_0.jpg
+│   ├── annotated_0.jpg        # 若 bundle 提供
 │   └── metadata.json
 ├── .staging/<task_id>/        # 原子提交中间态；完成后 os.rename 到 raw_ingestion/
 ├── .idempotency/<submit_id>.json   # 幂等键存档，24h TTL
@@ -191,9 +194,16 @@ storage/
   "upload_time": "2026-05-05T04:00:00Z",
   "has_annotation": false,
   "files": {
-    "product": {"filename": "product.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 2457600},
-    "tryon":   {"filename": "tryon.jpg",   "mime": "image/jpeg", "sha256": "...", "bytes": 2318901},
-    "retouched": {"filename": "retouched.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 2641203}
+    "product": [
+      {"filename": "product_0.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 2457600},
+      {"filename": "product_1.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 1984000}
+    ],
+    "tryon": [
+      {"filename": "tryon_0.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 2318901}
+    ],
+    "retouched": [
+      {"filename": "retouched_0.jpg", "mime": "image/jpeg", "sha256": "...", "bytes": 2641203}
+    ]
   }
 }
 ```
@@ -203,6 +213,7 @@ storage/
 | 版本 | 日期 | 变更 |
 |---|---|---|
 | 0.1.0 | 2026-05-05 | Phase 0 冻结首版：`/health` + `/api/bundles/batch` 合同，幂等键、partial-success 响应、e2e 模式开关 |
+| 0.2.0 | 2026-05-10 | `files` 字段改为数组格式支持多图；移除 `duplicate_group_key` 校验；存储文件名改为 `{role}_{idx}.{ext}` |
 
 **变更流程**：修改本文档需附带：
 1. 同步更新 `phase_plan.md` §4.1

@@ -38,12 +38,12 @@ export function BatchSubmitBar({
     const fileMap: Record<string, File> = {};
 
     for (const row of readyRows) {
-      const filesRecord: Record<Role, string> = {} as Record<Role, string>;
+      const filesRecord: Record<Role, string[]> = {} as Record<Role, string[]>;
       for (const role of REQUIRED_ROLES) {
         const main = row.cells[role].main;
         if (main) {
           const fieldName = buildFileFieldName(row.groupKey, role);
-          filesRecord[role] = fieldName;
+          filesRecord[role] = [fieldName];
           // Use original File reference if available, otherwise fetch from blobUrl
           const file: File = main.file ?? await fetch(main.blobUrl)
             .then(r => r.blob())

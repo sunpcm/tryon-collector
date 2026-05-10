@@ -13,19 +13,20 @@ router = APIRouter()
 
 
 def _load_bundles() -> list[dict]:
-    """Read all metadata.json from raw_ingestion/, newest first."""
+    """Read all metadata.json from raw_ingestion/, sorted by upload_time desc."""
     root = STORAGE_ROOT / "raw_ingestion"
     if not root.exists():
         return []
 
     bundles: list[dict] = []
-    for task_dir in sorted(root.iterdir(), reverse=True):
+    for task_dir in root.iterdir():
         meta_path = task_dir / "metadata.json"
         if meta_path.is_file():
             try:
                 bundles.append(json.loads(meta_path.read_text(encoding="utf-8")))
             except (json.JSONDecodeError, OSError):
                 continue
+    bundles.sort(key=lambda b: b.get("upload_time", ""), reverse=True)
     return bundles
 
 

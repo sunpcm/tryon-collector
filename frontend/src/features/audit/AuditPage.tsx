@@ -110,13 +110,16 @@ export function AuditPage() {
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
                   文件数
                 </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
+                  存储目录
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     加载中...
@@ -125,7 +128,7 @@ export function AuditPage() {
               ) : bundles.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     暂无数据
@@ -148,6 +151,9 @@ export function AuditPage() {
                       {b.has_annotation && (
                         <span className="ml-1 text-blue-500">(含标注)</span>
                       )}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs text-gray-400">
+                      {b.task_id}
                     </td>
                   </tr>
                 ))

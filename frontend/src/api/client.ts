@@ -34,7 +34,10 @@ export async function submitBundlesBatch(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    const msg = body?.message || body?.detail || await res.text().catch(() => 'Unknown error');
+    const msg =
+      body?.message ||
+      body?.detail ||
+      (await res.text().catch(() => 'Unknown error'));
     throw new Error(msg);
   }
 
@@ -55,7 +58,10 @@ export interface AuditBundle {
   upload_time: string;
   has_annotation: boolean;
   optional_notes?: string;
-  files: Record<string, { filename: string; mime: string; sha256: string; bytes: number }>;
+  files: Record<
+    string,
+    { filename: string; mime: string; sha256: string; bytes: number }
+  >;
 }
 
 export interface AuditResponse {
@@ -65,17 +71,44 @@ export interface AuditResponse {
   bundles: AuditBundle[];
 }
 
-export async function fetchAuditBundles(params: {
-  designer_id?: string;
-  category?: string;
-  limit?: number;
-  offset?: number;
-} = {}): Promise<AuditResponse> {
+export interface TagsConfig {
+  business_lines: string[];
+  categories: string[];
+}
+
+export async function fetchTags(): Promise<TagsConfig> {
+  const res = await fetch(`${API_BASE_URL}/api/tags`);
+  if (!res.ok) throw new Error(`Tags fetch failed (${res.status})`);
+  return res.json();
+}
+
+export async function updateTags(tags: TagsConfig): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/tags`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(tags),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.detail || `Tags update failed (${res.status})`);
+  }
+}
+
+export async function fetchAuditBundles(
+  params: {
+    designer_id?: string;
+    category?: string;
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<AuditResponse> {
   const searchParams = new URLSearchParams();
   if (params.designer_id) searchParams.set('designer_id', params.designer_id);
   if (params.category) searchParams.set('category', params.category);
-  if (params.limit !== undefined) searchParams.set('limit', String(params.limit));
-  if (params.offset !== undefined) searchParams.set('offset', String(params.offset));
+  if (params.limit !== undefined)
+    searchParams.set('limit', String(params.limit));
+  if (params.offset !== undefined)
+    searchParams.set('offset', String(params.offset));
 
   const res = await fetch(`${API_BASE_URL}/api/audit/bundles?${searchParams}`);
   if (!res.ok) {

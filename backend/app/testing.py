@@ -14,10 +14,9 @@ import uuid
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-_GROUP_KEY_RE = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
+from app.services.tags import get_tags
 
-VALID_BUSINESS_LINES = {"春季女装", "秋季女装", "春季男装", "秋季男装", "童装", "配饰"}
-VALID_CATEGORIES = {"连衣裙", "上衣", "裤子", "外套", "裙子", "鞋履", "包袋", "其他"}
+_GROUP_KEY_RE = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
 
 
 def _err(code: int, detail: str) -> JSONResponse:
@@ -36,12 +35,16 @@ async def handle_mock_submit(request: Request) -> JSONResponse:
     if not designer_id or len(designer_id) > 32:
         return _err(422, "invalid_designer_id")
 
+    tags = get_tags()
+    valid_business_lines = set(tags.get("business_lines", []))
+    valid_categories = set(tags.get("categories", []))
+
     business_line = str(form.get("business_line", ""))
-    if business_line not in VALID_BUSINESS_LINES:
+    if business_line not in valid_business_lines:
         return _err(422, "invalid_tag")
 
     category = str(form.get("category", ""))
-    if category not in VALID_CATEGORIES:
+    if category not in valid_categories:
         return _err(422, "invalid_tag")
 
     optional_notes = str(form.get("optional_notes", ""))

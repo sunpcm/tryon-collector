@@ -18,6 +18,7 @@ from app.services.bundle import BundleSaveError, save_bundle
 from app.services.dispatcher import DispatchError, dispatch_bundle
 from app.services.idempotency import get_idempotency, set_idempotency
 from app.services.retry_queue import enqueue, process_queue
+from app.services.tags import get_tags
 from app.testing import handle_mock_submit
 
 router = APIRouter()
@@ -26,8 +27,6 @@ _GROUP_KEY_RE = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
 _ALLOWED_MIMES = {"image/jpeg", "image/png"}
 _MAX_FILE_BYTES = 20 * 1024 * 1024  # 20 MB
 
-VALID_BUSINESS_LINES = {"春季女装", "秋季女装", "春季男装", "秋季男装", "童装", "配饰"}
-VALID_CATEGORIES = {"连衣裙", "上衣", "裤子", "外套", "裙子", "鞋履", "包袋", "其他"}
 
 
 def _err(code: int, detail: str) -> JSONResponse:
@@ -51,12 +50,16 @@ async def submit_bundles_batch(request: Request, background_tasks: BackgroundTas
     if not designer_id or len(designer_id) > 32:
         return _err(422, "invalid_designer_id")
 
+    tags = get_tags()
+    valid_business_lines = set(tags.get("business_lines", []))
+    valid_categories = set(tags.get("categories", []))
+
     business_line = str(form.get("business_line", ""))
-    if business_line not in VALID_BUSINESS_LINES:
+    if business_line not in valid_business_lines:
         return _err(422, "invalid_tag")
 
     category = str(form.get("category", ""))
-    if category not in VALID_CATEGORIES:
+    if category not in valid_categories:
         return _err(422, "invalid_tag")
 
     optional_notes = str(form.get("optional_notes", ""))

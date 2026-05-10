@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { Tag } from '@/components/Tag';
-import { VALID_BUSINESS_LINES, VALID_CATEGORIES } from '@/config';
+import { useTagsStore } from '@/store';
 
 interface TagSelectorProps {
   businessLine: string | null;
@@ -14,12 +15,18 @@ export function TagSelector({
   onBusinessLineChange,
   onCategoryChange,
 }: TagSelectorProps) {
+  const { businessLines, categories, loaded, loadTags } = useTagsStore();
+
+  useEffect(() => {
+    if (!loaded) loadTags();
+  }, [loaded, loadTags]);
+
   return (
     <div className="space-y-3">
       <div>
         <span className="text-xs text-gray-500 mb-1 block">业务线</span>
         <div className="flex flex-wrap gap-2">
-          {VALID_BUSINESS_LINES.map(line => (
+          {businessLines.map(line => (
             <Tag
               key={line}
               label={line}
@@ -32,7 +39,7 @@ export function TagSelector({
       <div>
         <span className="text-xs text-gray-500 mb-1 block">品类</span>
         <div className="flex flex-wrap gap-2">
-          {VALID_CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <Tag
               key={cat}
               label={cat}

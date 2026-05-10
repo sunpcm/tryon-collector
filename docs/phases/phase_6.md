@@ -96,3 +96,22 @@
 3. 提交时 groupKey 自动生成 UUID
 4. 点击「切换自动聚类」可切回旧模式
 5. 业务线和品类为可选标签，不选也能提交
+
+---
+
+## 附：禁用分发与 Mask 生成
+
+> 日期：2026-05-10
+
+### 背景
+
+当前系统仅需收集和存储图片，不需要自动分发到 `img-dc` 训练目录，也不需要生成差值 mask。分发失败导致 `dispatch_log/failed/` 积累大量错误日志，且 `img-dc/data/` 目录与 `raw_ingestion/` 数据不一致。
+
+### 改动
+
+- `backend/app/routers/ingest.py` — 移除 `dispatch_bundle()` 调用及相关 import（`DispatchError`、`enqueue`、`process_queue`、`BackgroundTasks`）
+- 分发/mask/retry 模块（`dispatcher.py`、`mask.py`、`retry_queue.py`）保留，未删除，后续需要时可重新接入
+
+### 当前提交流程
+
+设计师上传图片 → 后端校验 → 原子落盘到 `storage/raw_ingestion/<uuid>/` → 返回成功。无后续异步处理。

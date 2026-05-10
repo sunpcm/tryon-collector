@@ -34,6 +34,7 @@
   - **备选**：Node.js（Fastify 或原生 http，禁止引入 Nest、Express+中间件重栈）。
   - 后端**职责边界**：仅负责接收 multipart 上传 → 组装 `metadata.json` → 本地落盘 → 触发异步分发。禁止引入数据库、消息队列、Redis、对象存储；持久化状态一律落本地文件系统。
 - **存储**：本地文件系统 `storage/raw_ingestion/<uuid>/`，通过 symlink 对接 `img-dc` 训练目录。
+  - **当前状态**：分发（dispatch）和 mask 生成功能已禁用（2026-05-10），系统仅负责收集和存储。相关模块保留在代码中，后续需要时可重新接入。
 - **运行环境**：部署机锁定 Linux 或 macOS（依赖 symlink 行为）。
 
 ### 0.1.2 交互核心强约束

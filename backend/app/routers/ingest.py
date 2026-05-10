@@ -54,12 +54,12 @@ async def submit_bundles_batch(request: Request, background_tasks: BackgroundTas
     valid_business_lines = set(tags.get("business_lines", []))
     valid_categories = set(tags.get("categories", []))
 
-    business_line = str(form.get("business_line", ""))
-    if business_line not in valid_business_lines:
+    business_line = str(form.get("business_line", "")).strip()
+    if business_line and business_line not in valid_business_lines:
         return _err(422, "invalid_tag")
 
-    category = str(form.get("category", ""))
-    if category not in valid_categories:
+    category = str(form.get("category", "")).strip()
+    if category and category not in valid_categories:
         return _err(422, "invalid_tag")
 
     optional_notes = str(form.get("optional_notes", ""))

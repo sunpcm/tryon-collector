@@ -29,6 +29,7 @@
 | 8 | 前端 tags store | ✅ | `frontend/src/store/tags.ts` | Zustand store 缓存标签 |
 | 9 | 前端 TagSelector 改造 | ✅ | `frontend/src/features/tagging/TagSelector.tsx` | 使用动态标签 |
 | 10 | 前端 config 清理 | ✅ | `frontend/src/config/index.ts` | 移除硬编码常量 |
+| 11 | 前端标签管理页 | ✅ | `frontend/src/features/tagging/TagManager.tsx` | 可视化增删标签 |
 
 ## 4. 新增/修改代码
 
@@ -43,6 +44,8 @@
 - `src/api/client.ts` — 新增：`fetchTags()` / `updateTags()`
 - `src/store/tags.ts` — 新增：Zustand store，启动时加载标签
 - `src/features/tagging/TagSelector.tsx` — 改造：从 store 读取标签列表
+- `src/features/tagging/TagManager.tsx` — 新增：标签管理页，支持增删业务线和品类
+- `src/App.tsx` — 新增：`/tags` 路由 + 导航入口
 - `src/config/index.ts` — 移除：`VALID_BUSINESS_LINES` / `VALID_CATEGORIES` 硬编码常量
 
 ### 配置
@@ -50,7 +53,9 @@
 
 ## 5. 使用方式
 
-**修改标签**：直接编辑 `storage/tags.json`，刷新前端页面即可生效。
+**通过界面修改**：导航栏点击「标签管理」→ 增删业务线/品类 → 点击保存。
+
+**通过文件修改**：直接编辑 `storage/tags.json`，刷新前端页面即可生效。
 
 ```json
 {

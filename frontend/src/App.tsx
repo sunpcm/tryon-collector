@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Route, Switch, Link } from 'wouter';
 import { NicknameModal, IdentityBadge } from '@/features/identity';
-import { TagSelector } from '@/features/tagging';
+import { TagSelector, TagManager } from '@/features/tagging';
 import { MeltingPot } from '@/features/melting-pot';
 import { MatrixView, BatchSubmitBar } from '@/features/matrix';
 import { GamificationSidebar } from '@/features/gamification';
@@ -23,8 +23,17 @@ function MainPage() {
             Tryon Collector
           </h1>
           <div className="flex items-center gap-4">
-            <Link href="/audit" className="text-sm text-blue-500 hover:text-blue-600">
+            <Link
+              href="/audit"
+              className="text-sm text-blue-500 hover:text-blue-600"
+            >
               审计页
+            </Link>
+            <Link
+              href="/tags"
+              className="text-sm text-blue-500 hover:text-blue-600"
+            >
+              标签管理
             </Link>
             <IdentityBadge />
           </div>
@@ -94,6 +103,7 @@ function App() {
       <ToastContainer />
       <Switch>
         <Route path="/audit" component={AuditPage} />
+        <Route path="/tags" component={TagManager} />
         <Route component={MainPage} />
       </Switch>
     </>

@@ -31,9 +31,10 @@ export function ManualSubmitBar({
     setSubmitting(true);
     setProgress(0);
 
+    const groupKey = crypto.randomUUID();
     const clientSubmitId = crypto.randomUUID();
 
-    // Build one bundle per file — each file in each role gets its own bundle
+    // Build one bundle per file across all roles, sharing the same groupKey
     const bundles: BundleMeta[] = [];
     const fileMap: Record<string, File> = {};
 
@@ -48,13 +49,12 @@ export function ManualSubmitBar({
     );
 
     for (let i = 0; i < maxLen; i++) {
-      const groupKey = crypto.randomUUID();
       const filesRecord: Record<Role, string> = {} as Record<Role, string>;
 
       for (const role of REQUIRED_ROLES) {
         const f = manualFiles[role][i];
         if (!f) continue;
-        const fieldName = buildFileFieldName(groupKey, role);
+        const fieldName = buildFileFieldName(`${groupKey}_${i}`, role);
         filesRecord[role] = fieldName;
         fileMap[fieldName] = await resolveFile(f);
       }

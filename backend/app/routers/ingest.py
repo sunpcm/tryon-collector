@@ -86,14 +86,10 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
         return JSONResponse(status_code=200, content=cached)
 
     # ── validate group_keys ─────────────────────────────────────────────────
-    seen_keys: set[str] = set()
     for bm in bundles_meta:
         gk = bm.get("group_key", "")
         if not _GROUP_KEY_RE.match(gk):
             return _err(422, "invalid_group_key")
-        if gk in seen_keys:
-            return _err(422, "duplicate_group_key")
-        seen_keys.add(gk)
 
     # ── per-bundle processing ───────────────────────────────────────────────
     meta = {

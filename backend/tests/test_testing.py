@@ -135,17 +135,28 @@ def test_e2e_invalid_business_line():
     assert resp.json()["detail"] == "invalid_tag"
 
 
-def test_e2e_duplicate_group_key():
+def test_e2e_duplicate_group_key_allowed():
     sid = str(uuid.uuid4())
-    data, files = _multipart(["SKU001"], submit_id=sid)
-    bundles = [
-        {"group_key": "SKU001", "files": {"product": "f1", "tryon": "f2", "retouched": "f3"}},
-        {"group_key": "SKU001", "files": {"product": "f4", "tryon": "f5", "retouched": "f6"}},
-    ]
+    data = {
+        "designer_id": "张三",
+        "business_line": "春季女装",
+        "category": "连衣裙",
+        "optional_notes": "",
+        "client_submit_id": sid,
+    }
+    files = {}
+    bundles = []
+    for i in range(2):
+        file_refs = {}
+        for role in ("product", "tryon", "retouched"):
+            field = f"file_SKU001_{i}_{role}"
+            file_refs[role] = field
+            files[field] = _jpeg(f"SKU001_{i}_{role}.jpg")
+        bundles.append({"group_key": "SKU001", "files": file_refs})
     data["bundles"] = json.dumps(bundles)
     resp = _post(data, files)
-    assert resp.status_code == 422
-    assert resp.json()["detail"] == "duplicate_group_key"
+    assert resp.status_code == 200
+    assert len(resp.json()["accepted"]) == 2
 
 
 def test_e2e_task_ids_are_valid_uuids():

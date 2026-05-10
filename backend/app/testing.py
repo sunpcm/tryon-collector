@@ -68,14 +68,10 @@ async def handle_mock_submit(request: Request) -> JSONResponse:
         return _err(422, "bundle_limit_exceeded")
 
     # validate group_keys
-    seen_keys: set[str] = set()
     for bm in bundles_meta:
         gk = bm.get("group_key", "")
         if not _GROUP_KEY_RE.match(gk):
             return _err(422, "invalid_group_key")
-        if gk in seen_keys:
-            return _err(422, "duplicate_group_key")
-        seen_keys.add(gk)
 
     # generate mock responses
     accepted: list[dict] = []

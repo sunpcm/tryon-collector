@@ -31,30 +31,38 @@ export function ManualSubmitBar({
     setSubmitting(true);
     setProgress(0);
 
-    const groupKey = crypto.randomUUID();
     const clientSubmitId = crypto.randomUUID();
 
-    // Build bundles from manual files
+    // Build one bundle per file — each file in each role gets its own bundle
     const bundles: BundleMeta[] = [];
     const fileMap: Record<string, File> = {};
 
-    const filesRecord: Record<Role, string> = {} as Record<Role, string>;
-    for (const role of REQUIRED_ROLES) {
-      const roleFiles = manualFiles[role];
-      if (roleFiles.length > 0) {
-        // Use the first file for each required role
-        const main = roleFiles[0];
+    const resolveFile = async (f: (typeof manualFiles)[Role][number]): Promise<File> =>
+      f.file ??
+      fetch(f.blobUrl)
+        .then(r => r.blob())
+        .then(blob => new File([blob], f.name, { type: f.type }));
+
+    const maxLen = Math.max(
+      ...REQUIRED_ROLES.map(r => manualFiles[r].length),
+    );
+
+    for (let i = 0; i < maxLen; i++) {
+      const groupKey = crypto.randomUUID();
+      const filesRecord: Record<Role, string> = {} as Record<Role, string>;
+
+      for (const role of REQUIRED_ROLES) {
+        const f = manualFiles[role][i];
+        if (!f) continue;
         const fieldName = buildFileFieldName(groupKey, role);
         filesRecord[role] = fieldName;
-        const file: File =
-          main.file ??
-          (await fetch(main.blobUrl)
-            .then(r => r.blob())
-            .then(blob => new File([blob], main.name, { type: main.type })));
-        fileMap[fieldName] = file;
+        fileMap[fieldName] = await resolveFile(f);
+      }
+
+      if (Object.keys(filesRecord).length > 0) {
+        bundles.push({ group_key: groupKey, files: filesRecord });
       }
     }
-    bundles.push({ group_key: groupKey, files: filesRecord });
 
     try {
       const response = await submitBundlesBatch({

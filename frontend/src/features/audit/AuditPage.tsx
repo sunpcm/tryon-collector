@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Banner } from '@/components/Banner';
 import { fetchAuditBundles } from '@/api';
 import type { AuditBundle } from '@/api';
 
@@ -42,8 +43,9 @@ export function AuditPage() {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <Banner />
+      <div className="max-w-6xl mx-auto p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">审计页</h1>
 
         {/* Filters */}
@@ -113,20 +115,28 @@ export function AuditPage() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-gray-400"
+                  >
                     加载中...
                   </td>
                 </tr>
               ) : bundles.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-gray-400"
+                  >
                     暂无数据
                   </td>
                 </tr>
               ) : (
                 bundles.map(b => (
                   <tr key={b.task_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-mono text-xs">{b.group_key}</td>
+                    <td className="px-4 py-2 font-mono text-xs">
+                      {b.group_key}
+                    </td>
                     <td className="px-4 py-2">{b.designer_id}</td>
                     <td className="px-4 py-2">{b.category}</td>
                     <td className="px-4 py-2">{b.business_line}</td>

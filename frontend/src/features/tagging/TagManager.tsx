@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'wouter';
+import { Banner } from '@/components/Banner';
 import { fetchTags, updateTags, type TagsConfig } from '@/api/client';
 
 export function TagManager() {
@@ -73,8 +73,9 @@ export function TagManager() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-2xl mx-auto text-center text-gray-400 py-20">
+      <div className="min-h-screen bg-gray-50">
+        <Banner />
+        <div className="max-w-2xl mx-auto text-center text-gray-400 py-20 p-6">
           加载中...
         </div>
       </div>
@@ -82,14 +83,10 @@ export function TagManager() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">标签管理</h1>
-          <Link href="/" className="text-sm text-blue-500 hover:text-blue-600">
-            返回首页
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Banner />
+      <div className="max-w-2xl mx-auto p-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">标签管理</h1>
 
         {/* Business Lines */}
         <section className="bg-white rounded-lg border border-gray-200 p-4 mb-4">

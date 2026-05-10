@@ -39,11 +39,11 @@ async def handle_mock_submit(request: Request) -> JSONResponse:
     valid_business_lines = set(tags.get("business_lines", []))
     valid_categories = set(tags.get("categories", []))
 
-    business_line = str(form.get("business_line", "")).strip()
+    business_line = (form.get("business_line") or "").strip()
     if business_line and business_line not in valid_business_lines:
         return _err(422, "invalid_tag")
 
-    category = str(form.get("category", "")).strip()
+    category = (form.get("category") or "").strip()
     if category and category not in valid_categories:
         return _err(422, "invalid_tag")
 

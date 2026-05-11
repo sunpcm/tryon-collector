@@ -63,7 +63,7 @@ export interface AuditBundle {
   optional_notes?: string;
   files: Record<
     string,
-    { filename: string; mime: string; sha256: string; bytes: number }
+    { filename: string; mime: string; sha256: string; bytes: number }[]
   >;
 }
 

@@ -11,7 +11,6 @@ import os
 from pathlib import Path
 
 import cv2
-import numpy as np
 
 MASK_THRESHOLD = int(os.getenv("MASK_THRESHOLD", "30"))
 

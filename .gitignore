@@ -36,3 +36,5 @@ storage/dispatch_log/*
 .claude/
 backend/storage/
 backend/img-dc/
+.ssh_key
+.ssh_known_hosts

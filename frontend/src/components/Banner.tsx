@@ -5,6 +5,8 @@ const NAV_ITEMS = [
   { href: '/', label: '首页' },
   { href: '/audit', label: '审计页' },
   { href: '/tags', label: '标签管理' },
+  { href: '/showcase', label: '展示图采集' },
+  { href: '/showcase/audit', label: '展示图查看' },
 ];
 
 export function Banner() {

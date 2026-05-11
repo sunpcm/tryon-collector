@@ -119,3 +119,108 @@ export async function fetchAuditBundles(
   }
   return res.json();
 }
+
+export async function fetchBrands(): Promise<string[]> {
+  const res = await fetch(`${API_BASE_URL}/api/brands`);
+  if (!res.ok) throw new Error(`Brands fetch failed (${res.status})`);
+  const body = await res.json();
+  return body.brands ?? [];
+}
+
+export async function updateBrands(brands: string[]): Promise<string[]> {
+  const res = await fetch(`${API_BASE_URL}/api/brands`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brands }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.detail || `Brands update failed (${res.status})`);
+  }
+  const body = await res.json();
+  return body.brands ?? [];
+}
+
+export interface SubmitShowcasePayload {
+  uploader: string;
+  brand: string;
+  purpose?: string;
+  client_submit_id: string;
+  files: File[];
+}
+
+export interface SubmitShowcaseResponse {
+  showcase_id: string;
+  submit_id: string;
+}
+
+export async function submitShowcase(
+  payload: SubmitShowcasePayload
+): Promise<SubmitShowcaseResponse> {
+  const formData = new FormData();
+  formData.append('uploader', payload.uploader);
+  formData.append('brand', payload.brand);
+  formData.append('purpose', payload.purpose ?? '');
+  formData.append('client_submit_id', payload.client_submit_id);
+  for (const file of payload.files) {
+    formData.append('files', file, file.name);
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/showcases/batch`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(
+      body?.detail ||
+        (await res.text().catch(() => `Showcase submit failed (${res.status})`))
+    );
+  }
+  return res.json();
+}
+
+export interface ShowcaseFileMeta {
+  filename: string;
+  original_filename: string;
+  mime: string;
+  kind: 'image' | 'video';
+  sha256: string;
+  bytes: number;
+}
+
+export interface Showcase {
+  showcase_id: string;
+  submit_id: string;
+  uploader: string;
+  brand: string;
+  purpose: string;
+  upload_time: string;
+  files: ShowcaseFileMeta[];
+}
+
+export interface ShowcaseListResponse {
+  total: number;
+  offset: number;
+  limit: number;
+  showcases: Showcase[];
+}
+
+export async function fetchShowcases(
+  params: {
+    uploader?: string;
+    brand?: string;
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<ShowcaseListResponse> {
+  const sp = new URLSearchParams();
+  if (params.uploader) sp.set('uploader', params.uploader);
+  if (params.brand) sp.set('brand', params.brand);
+  if (params.limit !== undefined) sp.set('limit', String(params.limit));
+  if (params.offset !== undefined) sp.set('offset', String(params.offset));
+
+  const res = await fetch(`${API_BASE_URL}/api/showcases?${sp}`);
+  if (!res.ok) throw new Error(`Showcases fetch failed (${res.status})`);
+  return res.json();
+}

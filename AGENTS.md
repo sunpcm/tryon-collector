@@ -56,12 +56,16 @@ CLAUDE.md/README 说 `VITE_API_MODE=e2e` 走 mock。**完整链路**：
 
 ### 2.4 后端 router 不止 `ingest`
 
-CLAUDE.md 只提了 ingest。实际挂载（`main.py:71-73`）：
+CLAUDE.md 只提了 ingest。实际挂载（`main.py`）：
 - `routers/ingest.py` — `POST /api/bundles/batch`
 - `routers/audit.py` — 审计/查询
 - `routers/tags.py` — `GET/PUT /api/tags`（Phase 6 新增，业务线/品类动态配置存 `storage/tags.json`）
+- `routers/brands.py` — `GET/PUT /api/brands`（展示图流程用的品牌目录，存 `storage/brands.json`）
+- `routers/showcase.py` — `POST /api/showcases/batch` + `GET /api/showcases`（展示图采集，独立于 v0.1.0 bundles 契约）
 
 业务线 / 品类校验列表是**运行时从 `tags.json` 读**，不是硬编码常量。改默认值见 `backend/app/services/tags.py`。
+
+**Showcase 流程**跟 bundle 流程完全独立：存储在 `storage/showcases/<id>/` 下，无 role 分区，支持视频（`video/mp4` 等，见 `services/showcase.py` 的 `ALLOWED_MIMES`），图片上限 50MB、视频 200MB。**不要**把 showcase 字段塞进 `docs/api_contract.md`（那是 bundle v0.1.0 的冻结契约）。
 
 ### 2.5 后端环境变量清单
 

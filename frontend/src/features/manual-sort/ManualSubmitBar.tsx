@@ -113,12 +113,12 @@ export function ManualSubmitBar({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
       <div className="mb-3">
-        <label className="block text-xs text-gray-500 mb-1">款号（标题）</label>
+        <label className="block text-xs text-gray-500 mb-1">标题</label>
         <input
           type="text"
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="输入款号，如 SKU12345"
+          placeholder="输入标题（可选）"
           className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
         />
       </div>

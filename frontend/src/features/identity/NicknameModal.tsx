@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Input } from 'animal-island-ui';
+import { Button, Modal, Input } from '@/components';
 import { useIdentityStore } from '@/store';
 
 export function NicknameModal() {
@@ -28,31 +28,34 @@ export function NicknameModal() {
       title="欢迎使用 Tryon Collector"
       maskClosable={false}
       footer={null}
-      typewriter={false}
     >
-      <div className="py-4">
-        <p className="text-sm text-gray-500 mb-4">
-          请输入你的花名，用于标识提交记录
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-gray-600 leading-relaxed">
+          请输入你的花名，用于标识你提交的记录。
         </p>
-        <Input
-          size="large"
-          placeholder="输入花名..."
-          value={value}
-          onChange={e => {
-            setValue(e.target.value);
-            setError('');
-          }}
-          onKeyDown={e => e.key === 'Enter' && handleOk()}
-          status={error ? 'error' : undefined}
-          autoFocus
-        />
-        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-        <button
-          className="mt-4 w-full h-10 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          onClick={handleOk}
-        >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">花名</label>
+          <Input
+            size="lg"
+            placeholder="请输入你的花名"
+            value={value}
+            onChange={e => {
+              setValue(e.target.value);
+              setError('');
+            }}
+            onKeyDown={e => e.key === 'Enter' && handleOk()}
+            status={error ? 'error' : 'default'}
+            autoFocus
+          />
+          {error ? (
+            <p className="text-xs text-red-500">{error}</p>
+          ) : (
+            <p className="text-xs text-gray-400">最多 20 个字符</p>
+          )}
+        </div>
+        <Button variant="primary" size="lg" className="w-full" onClick={handleOk}>
           确认
-        </button>
+        </Button>
       </div>
     </Modal>
   );

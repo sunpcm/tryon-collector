@@ -1,43 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-// Mock animal-island-ui to avoid PNG import issues in jsdom
-vi.mock('animal-island-ui', () => ({
-  Modal: ({
-    open,
-    children,
-    title,
-  }: {
-    open: boolean;
-    children: React.ReactNode;
-    title?: string;
-  }) =>
-    open ? (
-      <div data-testid="modal">
-        {title && <div>{title}</div>}
-        {children}
-      </div>
-    ) : null,
-  Input: ({
-    value,
-    onChange,
-    placeholder,
-    ...props
-  }: {
-    value?: string;
-    onChange?: React.ChangeEventHandler<HTMLInputElement>;
-    placeholder?: string;
-    [key: string]: unknown;
-  }) => (
-    <input
-      value={value ?? ''}
-      onChange={onChange}
-      placeholder={placeholder}
-      {...props}
-    />
-  ),
-}));
-
 // Mock react-dropzone to avoid issues in jsdom
 vi.mock('react-dropzone', () => ({
   useDropzone: () => ({

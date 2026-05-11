@@ -21,12 +21,12 @@ dev-frontend:
 	cd frontend && pnpm dev
 
 dev-backend:
-	cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 
 dev:
-	@echo "→ starting backend on :8000 and frontend on :5173"
+	@echo "→ starting backend on :8003 and frontend on :5180"
 	@trap 'kill 0' INT TERM EXIT; \
-	 (cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload) & \
+	 (cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload) & \
 	 (cd frontend && pnpm dev) & \
 	 wait
 

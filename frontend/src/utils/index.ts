@@ -16,3 +16,4 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
 
 // Tailwind utilities
 export { cn } from './cn';
+export { uuid } from './uuid';

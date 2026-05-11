@@ -6,6 +6,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { incrementSubmitCount } from '@/features/gamification';
 import { REQUIRED_ROLES } from '@/types';
 import type { BundleMeta, Role } from '@/types';
+import { uuid } from '@/utils';
 
 interface BatchSubmitBarProps {
   businessLine: string;
@@ -31,7 +32,7 @@ export function BatchSubmitBar({
     setProgress(0);
 
     const readyRows = matrix.filter(r => r.status === 'ready');
-    const clientSubmitId = crypto.randomUUID();
+    const clientSubmitId = uuid();
 
     // Build bundles and file map
     const bundles: BundleMeta[] = [];

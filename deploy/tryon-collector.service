@@ -1,0 +1,29 @@
+[Unit]
+Description=Tryon Collector — designer try-on bundle ingestion service
+Documentation=file:///opt/workspace/yongli/tryon-collector/docs/DEPLOYMENT.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/workspace/yongli/tryon-collector/backend
+
+Environment="PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="TRYON_DISK_LIMIT_GB=10"
+
+ExecStart=/root/.local/bin/uv run uvicorn app.main:app --host 0.0.0.0 --port 8082
+
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+
+LimitNOFILE=65536
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tryon-collector
+
+[Install]
+WantedBy=multi-user.target

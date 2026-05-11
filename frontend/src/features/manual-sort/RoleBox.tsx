@@ -3,10 +3,11 @@ import { useDropzone } from 'react-dropzone';
 import type { FileMeta, Role } from '@/types';
 import { ROLE_LABELS } from '@/types';
 import { useMatrixStore } from '@/store';
+import { uuid } from '@/utils';
 
 function fileToFileMeta(file: File): FileMeta {
   return {
-    id: crypto.randomUUID(),
+    id: uuid(),
     name: file.name,
     size: file.size,
     type: file.type,

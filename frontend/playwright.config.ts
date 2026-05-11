@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // Bypass system proxy for localhost — dev machines running Clash/Mihomo
-// inject http_proxy/https_proxy that otherwise hijack http://localhost:5173.
+// inject http_proxy/https_proxy that otherwise hijack https://localhost:5180.
 process.env.NO_PROXY = [process.env.NO_PROXY, 'localhost', '127.0.0.1', '::1']
   .filter(Boolean)
   .join(',');
@@ -18,13 +18,15 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'html',
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'https://localhost:5180',
+    ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
   },
 
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:5173',
+    url: 'https://localhost:5180',
+    ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     env: {

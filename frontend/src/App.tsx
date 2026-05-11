@@ -4,6 +4,7 @@ import { Banner } from '@/components/Banner';
 import { TagSelector, TagManager } from '@/features/tagging';
 import { ManualSort } from '@/features/manual-sort';
 import { AuditPage } from '@/features/audit';
+import { ShowcaseUploadPage, ShowcaseAuditPage } from '@/features/showcase';
 import { ToastContainer } from '@/components/Toast';
 import { NicknameModal } from '@/features/identity';
 import { ManualSubmitBar } from '@/features/manual-sort/ManualSubmitBar';
@@ -45,6 +46,8 @@ function App() {
       <Switch>
         <Route path="/audit" component={AuditPage} />
         <Route path="/tags" component={TagManager} />
+        <Route path="/showcase" component={ShowcaseUploadPage} />
+        <Route path="/showcase/audit" component={ShowcaseAuditPage} />
         <Route component={MainPage} />
       </Switch>
     </>

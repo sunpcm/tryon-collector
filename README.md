@@ -22,19 +22,22 @@ git clone <repo-url> && cd tryon-collector
 # 2. 安装依赖（前端 pnpm + 后端 uv，一条命令）
 make install
 
-# 3. 启动开发服务器（前端 :5173 + 后端 :8000）
+# 3. 启动开发服务器（前端 :5180 HTTPS + 后端 :8003）
 make dev
 ```
 
-浏览器打开 `http://localhost:5173`，首次访问会弹出花名输入框。
+浏览器打开 `https://localhost:5180`，首次访问会弹出花名输入框。
 
+> **关于自签证书**：dev 模式启用 HTTPS（`@vitejs/plugin-basic-ssl`），首次访问浏览器会提示证书不可信，点 "高级 → 继续访问" 即可，每个浏览器只需接受一次。
+> 局域网其他机器访问 `https://<部署机IP>:5180`，同样接受一次证书。
+>
 > **Ctrl+C** 一次即可同时停止前后端。
 
 ## 常用命令
 
 ```bash
 make install        # 安装前端 (pnpm) + 后端 (uv) 依赖
-make dev            # 同时启动前端 :5173 + 后端 :8000
+make dev            # 同时启动前端 :5180 (HTTPS) + 后端 :8003
 make test           # 运行全部测试（Vitest + pytest）
 make test-frontend  # 仅前端单测
 make test-backend   # 仅后端单测
@@ -117,10 +120,26 @@ STORAGE_ROOT=/data/storage make dev-backend
 
 ## 生产部署
 
-一键构建前端并启动单端口服务：
+**推荐**：用 systemd 托管 uvicorn，开机自启 + 崩溃自重启 + 日志走 journald。完整 SOP 见 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)。
 
 ```bash
-# 默认端口 8000
+# 一次性安装（首次部署）
+make install && make build
+ln -s $(pwd)/deploy/tryon-collector.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now tryon-collector
+
+# 验证
+curl http://127.0.0.1:8082/health
+journalctl -u tryon-collector -f
+```
+
+启动后局域网内其他机器通过 `http://<部署机IP>:8082` 访问。
+
+### 手工启动（不用 systemd）
+
+```bash
+# 默认端口 8082
 ./scripts/run.sh
 
 # 自定义端口
@@ -130,21 +149,18 @@ PORT=9000 ./scripts/run.sh
 TRYON_DISK_LIMIT_GB=20 ./scripts/run.sh
 ```
 
-启动后局域网内其他机器通过 `http://<部署机IP>:8000` 访问。
+`scripts/run.sh` 会一并执行 `make install` + `make build` + 启动 uvicorn。
+
+### 更新版本
+
+```bash
+git pull && make install && make build
+systemctl restart tryon-collector
+```
 
 ### 磁盘水位告警
 
 当 `storage/` 目录总大小超过 `TRYON_DISK_LIMIT_GB`（默认 10GB）时，提交接口返回 HTTP 503，前端会弹出提示。管理员需清理 `storage/raw_ingestion/` 后恢复正常。
-
-### 后台运行
-
-```bash
-# 使用 nohup
-nohup ./scripts/run.sh > tryon.log 2>&1 &
-
-# 或使用 systemd（推荐）
-# 参考下方「故障排查」章节
-```
 
 ## 故障排查
 
@@ -176,6 +192,7 @@ nohup ./scripts/run.sh > tryon.log 2>&1 &
 |------|------|
 | `docs/phase_plan.md` | 完整分阶段实施方案 |
 | `docs/api_contract.md` | API 契约（v0.1.0 冻结） |
+| `docs/DEPLOYMENT.md` | 生产部署 SOP（systemd / 更新版本 / 故障排查） |
 | `docs/phases/phase_0.md` | Phase 0 总结 |
 | `docs/phases/phase_1.md` | Phase 1 总结 |
 | `docs/phases/phase_2.md` | Phase 2 总结（含手动测试清单） |

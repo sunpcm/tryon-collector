@@ -30,7 +30,6 @@
     }
   },
   "dependencies": {
-    "animal-island-ui": "0.7.7",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "react": "^19.1.1",
@@ -51,6 +50,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.15",
     "@vitest/ui": "^4.0.15",

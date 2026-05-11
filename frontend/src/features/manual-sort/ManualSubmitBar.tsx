@@ -6,6 +6,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { incrementSubmitCount } from '@/features/gamification';
 import { REQUIRED_ROLES } from '@/types';
 import type { BundleMeta, Role } from '@/types';
+import { uuid } from '@/utils';
 
 interface ManualSubmitBarProps {
   businessLine: string;
@@ -33,8 +34,8 @@ export function ManualSubmitBar({
     setSubmitting(true);
     setProgress(0);
 
-    const groupKey = crypto.randomUUID();
-    const clientSubmitId = crypto.randomUUID();
+    const groupKey = uuid();
+    const clientSubmitId = uuid();
 
     const resolveFile = async (f: (typeof manualFiles)[Role][number]): Promise<File> =>
       f.file ??

@@ -17,10 +17,10 @@ export const REQUIRED_ROLES: readonly Role[] = [
 ];
 
 export const ROLE_LABELS: Record<Role, string> = {
-  product: '产品图',
-  tryon: '试穿图',
-  retouched: '精修图',
-  annotated: '标注图',
+  product: '喂给AI的图',
+  tryon: 'AI生成的图',
+  retouched: '精修后的图',
+  annotated: '标注好的图',
 };
 
 export interface FileMeta {

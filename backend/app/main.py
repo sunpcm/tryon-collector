@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import audit, ingest, tags
+from app.routers import audit, brands, ingest, showcase, tags
 from app.services.idempotency import cleanup_stale_staging
 
 _DIST_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
@@ -71,6 +71,8 @@ def create_app() -> FastAPI:
     app.include_router(ingest.router, prefix="/api", tags=["ingest"])
     app.include_router(audit.router, prefix="/api", tags=["audit"])
     app.include_router(tags.router, prefix="/api", tags=["tags"])
+    app.include_router(brands.router, prefix="/api", tags=["brands"])
+    app.include_router(showcase.router, prefix="/api", tags=["showcase"])
 
     # Production mode: serve frontend static build from the same port.
     if _DIST_DIR.is_dir():

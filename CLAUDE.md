@@ -8,7 +8,7 @@ All commands are run from the repo root via `make`:
 
 ```bash
 make install          # Install frontend (pnpm) + backend (uv) deps
-make dev              # Start frontend (Vite :5173) + backend (FastAPI :8000) concurrently
+make dev              # Start frontend (Vite :5180 HTTPS) + backend (FastAPI :8003) concurrently
 make test             # Run all tests (Vitest + pytest)
 make test-frontend    # Vitest unit/component tests only
 make test-backend     # pytest only
@@ -61,6 +61,8 @@ These are hard constraints — do not substitute:
 **pnpm approve-builds**: Some packages require explicit build approval. Run `pnpm approve-builds` if install fails with a build script warning.
 
 **`make dev` process group**: `make dev` spawns a process group. Use `Ctrl+C` once to kill both frontend and backend; killing only one may leave the other running.
+
+**Self-signed HTTPS in dev**: Vite serves on `https://localhost:5180` via `@vitejs/plugin-basic-ssl`. Browsers warn on first visit — accept the cert once per browser. Required so LAN clients land in a secure context (`crypto.randomUUID`, Clipboard, Service Worker all need this). Production (`./scripts/run.sh`) is plain HTTP on `:8000` and is unaffected.
 
 ## Key Docs
 

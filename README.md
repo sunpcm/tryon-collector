@@ -120,10 +120,26 @@ STORAGE_ROOT=/data/storage make dev-backend
 
 ## 生产部署
 
-一键构建前端并启动单端口服务：
+**推荐**：用 systemd 托管 uvicorn，开机自启 + 崩溃自重启 + 日志走 journald。完整 SOP 见 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)。
 
 ```bash
-# 默认端口 8000
+# 一次性安装（首次部署）
+make install && make build
+ln -s $(pwd)/deploy/tryon-collector.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now tryon-collector
+
+# 验证
+curl http://127.0.0.1:8082/health
+journalctl -u tryon-collector -f
+```
+
+启动后局域网内其他机器通过 `http://<部署机IP>:8082` 访问。
+
+### 手工启动（不用 systemd）
+
+```bash
+# 默认端口 8082
 ./scripts/run.sh
 
 # 自定义端口
@@ -133,21 +149,18 @@ PORT=9000 ./scripts/run.sh
 TRYON_DISK_LIMIT_GB=20 ./scripts/run.sh
 ```
 
-启动后局域网内其他机器通过 `http://<部署机IP>:8000` 访问。
+`scripts/run.sh` 会一并执行 `make install` + `make build` + 启动 uvicorn。
+
+### 更新版本
+
+```bash
+git pull && make install && make build
+systemctl restart tryon-collector
+```
 
 ### 磁盘水位告警
 
 当 `storage/` 目录总大小超过 `TRYON_DISK_LIMIT_GB`（默认 10GB）时，提交接口返回 HTTP 503，前端会弹出提示。管理员需清理 `storage/raw_ingestion/` 后恢复正常。
-
-### 后台运行
-
-```bash
-# 使用 nohup
-nohup ./scripts/run.sh > tryon.log 2>&1 &
-
-# 或使用 systemd（推荐）
-# 参考下方「故障排查」章节
-```
 
 ## 故障排查
 
@@ -179,6 +192,7 @@ nohup ./scripts/run.sh > tryon.log 2>&1 &
 |------|------|
 | `docs/phase_plan.md` | 完整分阶段实施方案 |
 | `docs/api_contract.md` | API 契约（v0.1.0 冻结） |
+| `docs/DEPLOYMENT.md` | 生产部署 SOP（systemd / 更新版本 / 故障排查） |
 | `docs/phases/phase_0.md` | Phase 0 总结 |
 | `docs/phases/phase_1.md` | Phase 1 总结 |
 | `docs/phases/phase_2.md` | Phase 2 总结（含手动测试清单） |

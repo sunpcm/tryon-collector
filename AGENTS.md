@@ -9,8 +9,9 @@
 
 1. `CLAUDE.md` — 命令、架构、技术栈硬约束（**主要事实来源**）
 2. `docs/api_contract.md` — v0.1.0 冻结契约，改任何 endpoint 形状前必读
-3. 本文件 — 上面没写的隐性陷阱
-4. `docs/phases/phase_6.md` — 最新阶段，README 进度表里**没列**它（README 仅到 Phase 5）
+3. `docs/DEPLOYMENT.md` — 生产部署 SOP（systemd 托管，端口 :8082）
+4. 本文件 — 上面没写的隐性陷阱
+5. `docs/phases/phase_6.md` — 最新阶段，README 进度表里**没列**它（README 仅到 Phase 5）
 
 `frontend/TEMPLATE_GUIDE.md`、`frontend/TESTING_GUIDE.md`、`docs/archive/HOW_TO_RESUME.md` 都是脚手架/历史残留，**与本仓库当前状态无关**，不要按它们办事。
 

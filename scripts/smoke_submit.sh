@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # smoke_submit.sh — Phase 1 acceptance: submit one real bundle, verify storage output.
 # Usage: bash scripts/smoke_submit.sh [API_BASE]
-# Default API_BASE: http://127.0.0.1:8000
+# Default API_BASE: http://127.0.0.1:8082
 
 set -euo pipefail
 
-API="${1:-http://127.0.0.1:8000}"
+API="${1:-http://127.0.0.1:8082}"
 SUBMIT_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 GROUP_KEY="SMOKE$(date +%s)"
 STORAGE_ROOT="${STORAGE_ROOT:-storage}"

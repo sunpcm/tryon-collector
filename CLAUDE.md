@@ -62,7 +62,7 @@ These are hard constraints — do not substitute:
 
 **`make dev` process group**: `make dev` spawns a process group. Use `Ctrl+C` once to kill both frontend and backend; killing only one may leave the other running.
 
-**Self-signed HTTPS in dev**: Vite serves on `https://localhost:5180` via `@vitejs/plugin-basic-ssl`. Browsers warn on first visit — accept the cert once per browser. Required so LAN clients land in a secure context (`crypto.randomUUID`, Clipboard, Service Worker all need this). Production (`./scripts/run.sh`) is plain HTTP on `:8000` and is unaffected.
+**Self-signed HTTPS in dev**: Vite serves on `https://localhost:5180` via `@vitejs/plugin-basic-ssl`. Browsers warn on first visit — accept the cert once per browser. Required so LAN clients land in a secure context (`crypto.randomUUID`, Clipboard, Service Worker all need this). Production (`./scripts/run.sh` or systemd) is plain HTTP on `:8082` and is unaffected.
 
 ## Key Docs
 

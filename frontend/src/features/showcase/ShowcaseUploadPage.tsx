@@ -13,6 +13,11 @@ interface PickedFile {
   kind: 'image' | 'video';
 }
 
+interface ShowcaseUploadPageProps {
+  lockedBrand?: string;
+  title?: string;
+}
+
 const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 
@@ -32,24 +37,34 @@ function formatBytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function ShowcaseUploadPage() {
+export function ShowcaseUploadPage({
+  lockedBrand,
+  title = '展示图采集',
+}: ShowcaseUploadPageProps = {}) {
   const { nickname } = useIdentityStore();
   const [files, setFiles] = useState<PickedFile[]>([]);
-  const [brand, setBrand] = useState('');
+  const [brand, setBrand] = useState(lockedBrand ?? '');
   const [purpose, setPurpose] = useState('');
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const brandBoxRef = useRef<HTMLDivElement | null>(null);
+  const isBrandLocked = !!lockedBrand;
 
   useEffect(() => {
+    if (lockedBrand) setBrand(lockedBrand);
+  }, [lockedBrand]);
+
+  useEffect(() => {
+    if (isBrandLocked) return;
     fetchBrands()
       .then(setBrandOptions)
       .catch(() => setBrandOptions([]));
-  }, []);
+  }, [isBrandLocked]);
 
   useEffect(() => {
+    if (isBrandLocked) return;
     const onDocClick = (e: MouseEvent) => {
       if (
         brandBoxRef.current &&
@@ -60,13 +75,14 @@ export function ShowcaseUploadPage() {
     };
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
+  }, [isBrandLocked]);
 
   const filteredBrands = useMemo(() => {
+    if (isBrandLocked) return [];
     const q = brand.trim().toLowerCase();
     if (!q) return brandOptions;
     return brandOptions.filter(b => b.toLowerCase().includes(q));
-  }, [brand, brandOptions]);
+  }, [brand, brandOptions, isBrandLocked]);
 
   const onDrop = (accepted: File[]) => {
     const next: PickedFile[] = [];
@@ -125,11 +141,13 @@ export function ShowcaseUploadPage() {
       showToast(`提交成功：${resp.showcase_id.slice(0, 8)}...`, 'success');
       for (const f of files) URL.revokeObjectURL(f.preview);
       setFiles([]);
-      setBrand('');
+      if (!isBrandLocked) {
+        setBrand('');
+        fetchBrands()
+          .then(setBrandOptions)
+          .catch(() => {});
+      }
       setPurpose('');
-      fetchBrands()
-        .then(setBrandOptions)
-        .catch(() => {});
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`提交失败：${msg}`, 'error');
@@ -143,7 +161,7 @@ export function ShowcaseUploadPage() {
     <div className="min-h-screen bg-gray-50">
       <Banner />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-800">展示图采集</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
         <p className="text-sm text-gray-500">
           上传用于展示的图片或视频。一次可上传一批。
         </p>
@@ -154,36 +172,44 @@ export function ShowcaseUploadPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 品牌 <span className="text-red-500">*</span>
               </label>
-              <Input
-                size="md"
-                placeholder="输入或选择品牌"
-                value={brand}
-                onChange={e => {
-                  setBrand(e.target.value);
-                  setShowBrandDropdown(true);
-                }}
-                onFocus={() => setShowBrandDropdown(true)}
-              />
-              {showBrandDropdown && filteredBrands.length > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto z-10">
-                  {filteredBrands.map(b => (
-                    <button
-                      key={b}
-                      type="button"
-                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-blue-50"
-                      onMouseDown={e => {
-                        e.preventDefault();
-                        setBrand(b);
-                        setShowBrandDropdown(false);
-                      }}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
+              {isBrandLocked ? (
+                <Input size="md" value={brand} disabled readOnly />
+              ) : (
+                <Input
+                  size="md"
+                  placeholder="输入或选择品牌"
+                  value={brand}
+                  onChange={e => {
+                    setBrand(e.target.value);
+                    setShowBrandDropdown(true);
+                  }}
+                  onFocus={() => setShowBrandDropdown(true)}
+                />
               )}
+              {!isBrandLocked &&
+                showBrandDropdown &&
+                filteredBrands.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto z-10">
+                    {filteredBrands.map(b => (
+                      <button
+                        key={b}
+                        type="button"
+                        className="w-full text-left px-3 py-1.5 text-sm hover:bg-blue-50"
+                        onMouseDown={e => {
+                          e.preventDefault();
+                          setBrand(b);
+                          setShowBrandDropdown(false);
+                        }}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                )}
               <p className="text-xs text-gray-400 mt-1">
-                历史品牌会自动记住，下次输入时下拉可选
+                {isBrandLocked
+                  ? '当前入口已锁定品牌，如需切换请返回首页重新选择'
+                  : '历史品牌会自动记住，下次输入时下拉可选'}
               </p>
             </div>
 

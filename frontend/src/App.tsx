@@ -46,8 +46,19 @@ function App() {
       <Switch>
         <Route path="/audit" component={AuditPage} />
         <Route path="/tags" component={TagManager} />
-        <Route path="/showcase" component={ShowcaseUploadPage} />
         <Route path="/showcase/audit" component={ShowcaseAuditPage} />
+        <Route path="/showcase/monologue">
+          <ShowcaseUploadPage
+            lockedBrand="monologue"
+            title="monologue 展示图采集"
+          />
+        </Route>
+        <Route path="/showcase/laofengxiang">
+          <ShowcaseUploadPage lockedBrand="老凤祥" title="老凤祥展示图采集" />
+        </Route>
+        <Route path="/showcase">
+          <ShowcaseUploadPage />
+        </Route>
         <Route component={MainPage} />
       </Switch>
     </>

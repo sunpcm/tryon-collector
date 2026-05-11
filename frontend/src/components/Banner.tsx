@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { IdentityBadge } from '@/features/identity';
 import { cn } from '@/utils';
 
-type Mode = 'tryon' | 'showcase';
+type Mode = 'tryon' | 'showcase-monologue' | 'showcase-laofengxiang';
 
 interface ModeConfig {
   label: string;
@@ -21,18 +21,30 @@ const MODES: Record<Mode, ModeConfig> = {
       { href: '/tags', label: '标签管理' },
     ],
   },
-  showcase: {
-    label: '展示图采集',
-    home: '/showcase',
+  'showcase-monologue': {
+    label: 'monologue 展示图',
+    home: '/showcase/monologue',
     navItems: [
-      { href: '/showcase', label: '首页' },
+      { href: '/showcase/monologue', label: '首页' },
+      { href: '/showcase/audit', label: '展示图查看' },
+    ],
+  },
+  'showcase-laofengxiang': {
+    label: '老凤祥展示图',
+    home: '/showcase/laofengxiang',
+    navItems: [
+      { href: '/showcase/laofengxiang', label: '首页' },
       { href: '/showcase/audit', label: '展示图查看' },
     ],
   },
 };
 
 function currentMode(location: string): Mode {
-  return location.startsWith('/showcase') ? 'showcase' : 'tryon';
+  if (location.startsWith('/showcase/laofengxiang'))
+    return 'showcase-laofengxiang';
+  if (location.startsWith('/showcase/monologue')) return 'showcase-monologue';
+  if (location.startsWith('/showcase')) return 'showcase-monologue';
+  return 'tryon';
 }
 
 export function Banner() {

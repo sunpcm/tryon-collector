@@ -13,7 +13,7 @@ test.use({
     cookies: [],
     origins: [
       {
-        origin: 'http://localhost:5173',
+        origin: 'https://localhost:5180',
         localStorage: [{ name: 'tryon-nickname', value: '"测试设计师"' }],
       },
     ],

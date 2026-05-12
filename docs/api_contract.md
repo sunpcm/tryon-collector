@@ -152,6 +152,125 @@ Content-Type: image/jpeg
 | 503 | 磁盘水位超阈值（Phase 5） | `{"detail": "storage_watermark_exceeded"}` |
 | 500 | 未预期异常 | `{"detail": "internal_error", "trace_id": "..."}` |
 
+### 2.3 `GET /api/audit/bundles`
+
+列出已提交的 bundle，支持过滤、分页和软删可见性。
+
+| Query 参数 | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| `designer_id` | string | — | 按花名精确匹配 |
+| `category` | string | — | 按品类精确匹配 |
+| `include_deleted` | bool | `false` | 是否包含 `deleted_at` 非空的记录 |
+| `limit` | int | 100 | 1-500 |
+| `offset` | int | 0 | ≥ 0 |
+
+响应：`{"total": int, "offset": int, "limit": int, "bundles": AuditBundle[]}`，按 `upload_time` 倒序。
+
+### 2.4 `PATCH /api/audit/bundles/{task_id}`
+
+修改 bundle 元数据（不动文件）。**信任前端身份**，不做鉴权 — 前端只对自己的记录显示「编辑」入口；恶意客户端能改任意记录，符合当前局域网无账号的信任模型。
+
+| Query 参数 | 说明 |
+|---|---|
+| `actor` | 操作者花名，仅写入 `updated_by` 字段做审计记录 |
+
+Body（`application/json`，下列字段任意子集）：
+```json
+{ "title": "...", "business_line": "...", "category": "...", "optional_notes": "..." }
+```
+
+| HTTP | 场景 | body |
+|---|---|---|
+| 200 | 成功，返回更新后的完整 metadata | `{...}` |
+| 404 | task_id 不存在 | `{"detail": "not_found"}` |
+| 409 | 记录已软删 | `{"detail": "already_deleted"}` |
+| 422 | 无可改字段 / `business_line` / `category` 不在白名单 | `{"detail": "no_patchable_fields" | "invalid_tag" | "invalid_optional_notes"}` |
+
+### 2.5 `DELETE /api/audit/bundles/{task_id}`
+
+软删除：在 `metadata.json` 加 `deleted_at` / `deleted_by`，**不动文件**。幂等：重复删返回 200，`deleted_at` 不更新。
+
+| Query 参数 | 说明 |
+|---|---|
+| `actor` | 操作者花名，写入 `deleted_by` |
+
+| HTTP | 场景 | body |
+|---|---|---|
+| 200 | 成功（含已删除记录） | 完整 metadata |
+| 404 | task_id 不存在 | `{"detail": "not_found"}` |
+
+### 2.6 `POST /api/bundles/batch` 编辑流扩展（v0.3.0）
+
+增加可选 form 字段 `replaces_task_id`：若提供且本次提交至少一个 bundle 落盘成功，**会自动软删** `replaces_task_id` 指向的旧 bundle（`deleted_by` = 本次 `designer_id`）。
+
+- 软删失败不影响主响应（best-effort）
+- 若本次全部 rejected，`replaces_task_id` 被忽略
+- 用于「编辑跳首页 → 重新提交 → 旧记录自动软删」的语义
+
+### 2.7 `POST /api/showcases/batch`
+
+展示图采集，与 bundle 流程并行、契约独立。
+
+#### Form fields
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `uploader` | string | ✅ | 花名，1-32 |
+| `brand` | string | ✅ | 品牌名，1-64 |
+| `purpose` | string | ❌ | 用途说明，≤ 200 |
+| `client_submit_id` | uuid v4 | ✅ | （目前 showcase 不做幂等回放，仅做格式校验） |
+| `files` | binary | ✅ | 1+ 个文件字段，图片或视频 |
+| `replaces_id` | string | ❌ | v0.3.0 新增：若提供且提交成功，自动软删指向的旧 showcase |
+
+#### 文件类型 / 大小
+
+| 类型 | MIME | 单文件上限 |
+|---|---|---|
+| 图片 | image/jpeg, image/png, image/webp, image/tiff, image/bmp, image/heic, image/heif, image/gif | 50 MB |
+| 视频 | video/mp4, video/webm, video/quicktime, video/x-msvideo, video/x-matroska, video/x-flv, video/mpeg, video/3gpp | 200 MB |
+
+| HTTP | 场景 | body |
+|---|---|---|
+| 201 | 成功落盘 | `{"showcase_id": "...", "submit_id": "..."}` |
+| 415 | MIME 不在允许列表 | `{"detail": "unsupported_mime:<mime>"}` |
+| 413 | 单文件超上限 | `{"detail": "file_too_large:<filename>"}` |
+| 422 | uploader / brand / submit_id 校验失败 | `{"detail": "invalid_uploader" | "invalid_brand" | "invalid_client_submit_id" | "no_files"}` |
+
+### 2.8 `GET /api/showcases`
+
+列出 showcase。Query 参数：`uploader` / `brand` / `include_deleted`（默认 false） / `limit` / `offset`。响应同 §2.3 形状，字段名 `showcases`。
+
+### 2.9 `PATCH /api/showcases/{showcase_id}`
+
+修改 showcase 元数据。Body 可包含 `brand` 或 `purpose`（其他字段被静默丢弃）。404 / 409 / 422 与 §2.4 同。
+
+### 2.10 `DELETE /api/showcases/{showcase_id}`
+
+软删除，与 §2.5 等价。
+
+### 2.11 软删除字段
+
+bundle 与 showcase 共用同一约定。出现于 `metadata.json` 与所有 list/patch 响应中：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `deleted_at` | ISO8601 UTC | 软删时间戳；存在表示已删除 |
+| `deleted_by` | string | 删除者花名（若调用时带了 `actor`） |
+| `updated_at` | ISO8601 UTC | 最近一次 PATCH 时间戳 |
+| `updated_by` | string | 最近一次 PATCH 操作者花名 |
+
+物理清理：**未实现**。`storage/raw_ingestion/` 与 `storage/showcases/` 体积会持续增长，需要管理员手动清理或后续阶段加定时任务。磁盘水位 middleware（§2.2）只覆盖 `POST /api/bundles/batch`，软删记录占用的空间也会计入。
+
+### 2.12 信任模型
+
+写操作（PATCH / DELETE / `replaces_*`）**完全信任前端**：
+
+- 服务端不校验 `actor` 是否等于记录拥有者
+- 前端通过"只看自己 + 仅自己的行显示编辑/删除"做软约束，但 cURL 任意 `task_id` 都能改/删
+- 这是局域网工具的有意决策；如需收紧，后续阶段可加 `X-Uploader` header 校验或引入 token
+
+
+
 ## 3. 幂等性
 
 - 以 `client_submit_id` 作为幂等键，保留窗口 **24 小时**（Phase 1 以本地文件 `storage/.idempotency/<uuid>.json` 实现）。
@@ -214,6 +333,7 @@ storage/
 |---|---|---|
 | 0.1.0 | 2026-05-05 | Phase 0 冻结首版：`/health` + `/api/bundles/batch` 合同，幂等键、partial-success 响应、e2e 模式开关 |
 | 0.2.0 | 2026-05-10 | `files` 字段改为数组格式支持多图；移除 `duplicate_group_key` 校验；存储文件名改为 `{role}_{idx}.{ext}` |
+| 0.3.0 | 2026-05-12 | 审计 / 展示图加 `PATCH` + `DELETE` 软删；list 接口加 `include_deleted`；`POST /api/bundles/batch` 加 `replaces_task_id`，`POST /api/showcases/batch` 加 `replaces_id`；新增 §2.3-2.12 |
 
 **变更流程**：修改本文档需附带：
 1. 同步更新 `phase_plan.md` §4.1

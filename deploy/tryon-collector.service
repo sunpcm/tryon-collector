@@ -13,7 +13,7 @@ WorkingDirectory=/opt/workspace/yongli/tryon-collector/backend
 Environment="PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="TRYON_DISK_LIMIT_GB=10"
 
-ExecStart=/root/.local/bin/uv run uvicorn app.main:app --host 0.0.0.0 --port 8082
+ExecStart=/root/.local/bin/uv run uvicorn app.main:app --host 0.0.0.0 --port 5180
 
 Restart=on-failure
 RestartSec=5

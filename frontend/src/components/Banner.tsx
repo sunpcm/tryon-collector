@@ -26,7 +26,7 @@ const MODES: Record<Mode, ModeConfig> = {
     home: '/showcase/monologue',
     navItems: [
       { href: '/showcase/monologue', label: '首页' },
-      { href: '/showcase/audit', label: '展示图查看' },
+      { href: '/showcase/monologue/audit', label: '展示图查看' },
     ],
   },
   'showcase-laofengxiang': {
@@ -34,7 +34,7 @@ const MODES: Record<Mode, ModeConfig> = {
     home: '/showcase/laofengxiang',
     navItems: [
       { href: '/showcase/laofengxiang', label: '首页' },
-      { href: '/showcase/audit', label: '展示图查看' },
+      { href: '/showcase/laofengxiang/audit', label: '展示图查看' },
     ],
   },
 };

@@ -7,13 +7,21 @@ import { useIdentityStore } from '@/store';
 
 const PAGE_SIZE = 20;
 
+interface ShowcaseAuditPageProps {
+  lockedBrand?: string;
+  title?: string;
+}
+
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function ShowcaseAuditPage() {
+export function ShowcaseAuditPage({
+  lockedBrand,
+  title = '展示图查看',
+}: ShowcaseAuditPageProps = {}) {
   const { nickname } = useIdentityStore();
 
   const [rows, setRows] = useState<Showcase[]>([]);
@@ -24,13 +32,14 @@ export function ShowcaseAuditPage() {
   const [brandFilter, setBrandFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState<Showcase | null>(null);
+  const isBrandLocked = !!lockedBrand;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const resp = await fetchShowcases({
         uploader: showAll ? undefined : (nickname ?? '__none__'),
-        brand: brandFilter || undefined,
+        brand: lockedBrand ?? brandFilter ?? undefined,
         include_deleted: includeDeleted,
         limit: PAGE_SIZE,
         offset,
@@ -43,7 +52,7 @@ export function ShowcaseAuditPage() {
     } finally {
       setLoading(false);
     }
-  }, [showAll, nickname, brandFilter, includeDeleted, offset]);
+  }, [showAll, nickname, brandFilter, lockedBrand, includeDeleted, offset]);
 
   useEffect(() => {
     load();
@@ -68,7 +77,7 @@ export function ShowcaseAuditPage() {
     <div className="min-h-screen bg-gray-50">
       <Banner />
       <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">展示图查看</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">{title}</h1>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex gap-4 items-center flex-wrap">
           <label className="flex items-center gap-1.5 text-sm text-gray-700">
@@ -93,19 +102,21 @@ export function ShowcaseAuditPage() {
             />
             显示已删除
           </label>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">品牌</label>
-            <input
-              type="text"
-              value={brandFilter}
-              onChange={e => {
-                setBrandFilter(e.target.value);
-                setOffset(0);
-              }}
-              placeholder="筛选品牌..."
-              className="px-3 py-1.5 border border-gray-300 rounded text-sm"
-            />
-          </div>
+          {!isBrandLocked && (
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">品牌</label>
+              <input
+                type="text"
+                value={brandFilter}
+                onChange={e => {
+                  setBrandFilter(e.target.value);
+                  setOffset(0);
+                }}
+                placeholder="筛选品牌..."
+                className="px-3 py-1.5 border border-gray-300 rounded text-sm"
+              />
+            </div>
+          )}
           <button
             onClick={load}
             className="px-4 py-1.5 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
@@ -114,6 +125,9 @@ export function ShowcaseAuditPage() {
           </button>
           <span className="text-sm text-gray-500 ml-auto">
             共 {total} 条
+            {lockedBrand && (
+              <span className="text-gray-400">（品牌：{lockedBrand}）</span>
+            )}
             {!showAll && nickname && (
               <span className="text-gray-400">（{nickname}）</span>
             )}

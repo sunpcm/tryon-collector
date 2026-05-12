@@ -38,7 +38,7 @@ interface ClusterConfigState {
   resetToDefault: () => void;
 }
 
-export const useClusterConfigStore = create<ClusterConfigState>((set) => ({
+export const useClusterConfigStore = create<ClusterConfigState>(set => ({
   config: loadConfig(),
 
   setGroupKeyRegex: (pattern: string) => {

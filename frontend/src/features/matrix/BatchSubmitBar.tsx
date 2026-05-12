@@ -46,9 +46,11 @@ export function BatchSubmitBar({
           const fieldName = buildFileFieldName(row.groupKey, role);
           filesRecord[role] = [fieldName];
           // Use original File reference if available, otherwise fetch from blobUrl
-          const file: File = main.file ?? await fetch(main.blobUrl)
-            .then(r => r.blob())
-            .then(blob => new File([blob], main.name, { type: main.type }));
+          const file: File =
+            main.file ??
+            (await fetch(main.blobUrl)
+              .then(r => r.blob())
+              .then(blob => new File([blob], main.name, { type: main.type })));
           fileMap[fieldName] = file;
         }
       }

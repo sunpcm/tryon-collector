@@ -1,7 +1,8 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 import { cn } from '@/utils';
 
-interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+interface InputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   size?: 'sm' | 'md' | 'lg';
   status?: 'error' | 'default';
 }

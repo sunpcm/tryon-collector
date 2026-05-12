@@ -1,1 +1,5 @@
-export { GamificationSidebar, getSubmitCount, incrementSubmitCount } from './GamificationSidebar';
+export {
+  GamificationSidebar,
+  getSubmitCount,
+  incrementSubmitCount,
+} from './GamificationSidebar';

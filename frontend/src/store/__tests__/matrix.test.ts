@@ -3,14 +3,25 @@ import { useMatrixStore } from '../matrix';
 import type { FileMeta, MatrixRow } from '@/types';
 
 function makeFile(id: string): FileMeta {
-  return { id, name: `${id}.jpg`, size: 100, type: 'image/jpeg', blobUrl: `blob:${id}` };
+  return {
+    id,
+    name: `${id}.jpg`,
+    size: 100,
+    type: 'image/jpeg',
+    blobUrl: `blob:${id}`,
+  };
 }
 
 function makeRow(groupKey: string): MatrixRow {
   const cell = () => ({ main: undefined, candidates: [] });
   return {
     groupKey,
-    cells: { product: cell(), tryon: cell(), retouched: cell(), annotated: cell() },
+    cells: {
+      product: cell(),
+      tryon: cell(),
+      retouched: cell(),
+      annotated: cell(),
+    },
     status: 'incomplete',
   };
 }
@@ -63,7 +74,9 @@ describe('matrix store', () => {
 
       useMatrixStore.getState().setCellFile('SKU-1', 'tryon', fresh);
 
-      expect(useMatrixStore.getState().matrix[0].cells.tryon.main?.id).toBe('new');
+      expect(useMatrixStore.getState().matrix[0].cells.tryon.main?.id).toBe(
+        'new'
+      );
     });
   });
 
@@ -71,15 +84,22 @@ describe('matrix store', () => {
     it('sets and clears selection', () => {
       expect(useMatrixStore.getState().selectedCell).toBeNull();
 
-      useMatrixStore.getState().setSelectedCell({ groupKey: 'SKU-1', role: 'product' });
-      expect(useMatrixStore.getState().selectedCell).toEqual({ groupKey: 'SKU-1', role: 'product' });
+      useMatrixStore
+        .getState()
+        .setSelectedCell({ groupKey: 'SKU-1', role: 'product' });
+      expect(useMatrixStore.getState().selectedCell).toEqual({
+        groupKey: 'SKU-1',
+        role: 'product',
+      });
 
       useMatrixStore.getState().setSelectedCell(null);
       expect(useMatrixStore.getState().selectedCell).toBeNull();
     });
 
     it('clears on clearAll', () => {
-      useMatrixStore.getState().setSelectedCell({ groupKey: 'SKU-1', role: 'product' });
+      useMatrixStore
+        .getState()
+        .setSelectedCell({ groupKey: 'SKU-1', role: 'product' });
       useMatrixStore.getState().clearAll();
       expect(useMatrixStore.getState().selectedCell).toBeNull();
     });

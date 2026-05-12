@@ -6,7 +6,10 @@
  * plain-HTTP LAN deployments where `randomUUID` is unavailable.
  */
 export function uuid(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID();
   }
 

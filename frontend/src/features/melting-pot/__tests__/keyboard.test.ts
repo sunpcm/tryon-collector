@@ -6,7 +6,12 @@ function makeRow(groupKey: string): MatrixRow {
   const cell = () => ({ main: undefined, candidates: [] });
   return {
     groupKey,
-    cells: { product: cell(), tryon: cell(), retouched: cell(), annotated: cell() },
+    cells: {
+      product: cell(),
+      tryon: cell(),
+      retouched: cell(),
+      annotated: cell(),
+    },
     status: 'incomplete',
   };
 }
@@ -49,7 +54,15 @@ describe('keyboard shortcuts', () => {
   describe('Escape', () => {
     it('clears unassigned and selectedCell', () => {
       useMatrixStore.setState({
-        unassigned: [{ id: 'u1', name: 'u.jpg', size: 100, type: 'image/jpeg', blobUrl: 'blob:u' }],
+        unassigned: [
+          {
+            id: 'u1',
+            name: 'u.jpg',
+            size: 100,
+            type: 'image/jpeg',
+            blobUrl: 'blob:u',
+          },
+        ],
         selectedCell: { groupKey: 'SKU-1', role: 'product' },
       });
 
@@ -90,7 +103,9 @@ describe('keyboard shortcuts', () => {
       btn.setAttribute('data-testid', 'submit-btn');
       btn.disabled = false;
       let clicked = false;
-      btn.addEventListener('click', () => { clicked = true; });
+      btn.addEventListener('click', () => {
+        clicked = true;
+      });
       document.body.appendChild(btn);
 
       handleKeyDown(new KeyboardEvent('keydown', { key: 'Enter' }));
@@ -103,7 +118,9 @@ describe('keyboard shortcuts', () => {
       btn.setAttribute('data-testid', 'submit-btn');
       btn.disabled = true;
       let clicked = false;
-      btn.addEventListener('click', () => { clicked = true; });
+      btn.addEventListener('click', () => {
+        clicked = true;
+      });
       document.body.appendChild(btn);
 
       handleKeyDown(new KeyboardEvent('keydown', { key: 'Enter' }));
@@ -119,7 +136,15 @@ describe('keyboard shortcuts', () => {
       input.focus();
 
       useMatrixStore.setState({
-        unassigned: [{ id: 'u1', name: 'u.jpg', size: 100, type: 'image/jpeg', blobUrl: 'blob:u' }],
+        unassigned: [
+          {
+            id: 'u1',
+            name: 'u.jpg',
+            size: 100,
+            type: 'image/jpeg',
+            blobUrl: 'blob:u',
+          },
+        ],
       });
 
       // Create event with input as target

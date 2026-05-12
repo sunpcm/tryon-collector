@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import { GamificationSidebar, getSubmitCount, incrementSubmitCount } from '../GamificationSidebar';
+import {
+  GamificationSidebar,
+  getSubmitCount,
+  incrementSubmitCount,
+} from '../GamificationSidebar';
 
 const STORAGE_KEY = 'tryon_submit_count';
 

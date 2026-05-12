@@ -53,7 +53,12 @@ export function NicknameModal() {
             <p className="text-xs text-gray-400">最多 20 个字符</p>
           )}
         </div>
-        <Button variant="primary" size="lg" className="w-full" onClick={handleOk}>
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          onClick={handleOk}
+        >
           确认
         </Button>
       </div>

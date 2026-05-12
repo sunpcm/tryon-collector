@@ -5,44 +5,35 @@ interface TagsState {
   businessLines: string[];
   categories: string[];
   loaded: boolean;
-  loadTags: () => Promise<void>;
+  loadError: string | null;
+  loadTags: (force?: boolean) => Promise<void>;
+  invalidate: () => void;
 }
 
-export const useTagsStore = create<TagsState>(set => ({
+export const useTagsStore = create<TagsState>((set, get) => ({
   businessLines: [],
   categories: [],
   loaded: false,
-  loadTags: async () => {
+  loadError: null,
+  loadTags: async force => {
+    if (!force && get().loaded) return;
     try {
       const tags: TagsConfig = await fetchTags();
       set({
         businessLines: tags.business_lines,
         categories: tags.categories,
         loaded: true,
+        loadError: null,
       });
-    } catch {
-      // fallback to defaults on error
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       set({
-        businessLines: [
-          '春季女装',
-          '秋季女装',
-          '春季男装',
-          '秋季男装',
-          '童装',
-          '配饰',
-        ],
-        categories: [
-          '连衣裙',
-          '上衣',
-          '裤子',
-          '外套',
-          '裙子',
-          '鞋履',
-          '包袋',
-          '其他',
-        ],
+        businessLines: [],
+        categories: [],
         loaded: true,
+        loadError: msg,
       });
     }
   },
+  invalidate: () => set({ loaded: false }),
 }));

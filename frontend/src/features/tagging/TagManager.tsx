@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Banner } from '@/components/Banner';
 import { fetchTags, updateTags, type TagsConfig } from '@/api/client';
+import { useTagsStore } from '@/store';
 
 export function TagManager() {
   const [businessLines, setBusinessLines] = useState<string[]>([]);
@@ -36,6 +37,7 @@ export function TagManager() {
     setMessage(null);
     try {
       await updateTags({ business_lines: businessLines, categories });
+      await useTagsStore.getState().loadTags(true);
       setMessage({ type: 'ok', text: '保存成功' });
     } catch (e) {
       setMessage({

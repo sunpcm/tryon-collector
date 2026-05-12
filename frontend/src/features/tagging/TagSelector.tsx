@@ -15,7 +15,8 @@ export function TagSelector({
   onBusinessLineChange,
   onCategoryChange,
 }: TagSelectorProps) {
-  const { businessLines, categories, loaded, loadTags } = useTagsStore();
+  const { businessLines, categories, loaded, loadError, loadTags } =
+    useTagsStore();
 
   useEffect(() => {
     if (!loaded) loadTags();
@@ -23,6 +24,9 @@ export function TagSelector({
 
   return (
     <div className="space-y-3">
+      {loadError && (
+        <div className="text-xs text-red-600">标签加载失败：{loadError}</div>
+      )}
       <div>
         <span className="text-xs text-gray-500 mb-1 block">品牌</span>
         <div className="flex flex-wrap gap-2">

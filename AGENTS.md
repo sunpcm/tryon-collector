@@ -59,7 +59,7 @@ CLAUDE.md/README 说 `VITE_API_MODE=e2e` 走 mock。**完整链路**：
 CLAUDE.md 只提了 ingest。实际挂载（`main.py`）：
 - `routers/ingest.py` — `POST /api/bundles/batch`
 - `routers/audit.py` — 审计/查询
-- `routers/tags.py` — `GET/PUT /api/tags`（Phase 6 新增，业务线/品类动态配置存 `storage/tags.json`）
+- `routers/tags.py` — `GET/PUT /api/tags`（Phase 6 新增，业务线/品类动态配置存 `backend/storage/tags.json`，相对 `STORAGE_ROOT` env，默认 `storage`，cwd 是 `backend/`）
 - `routers/brands.py` — `GET/PUT /api/brands`（展示图流程用的品牌目录，存 `storage/brands.json`）
 - `routers/showcase.py` — `POST /api/showcases/batch` + `GET /api/showcases`（展示图采集，独立于 v0.1.0 bundles 契约）
 
@@ -135,7 +135,7 @@ cd frontend && pnpm exec playwright test e2e/specs/mvp.spec.ts --project=chromiu
 
 ## 5. 存储与符号链接
 
-- `storage/` 是**唯一持久化**，没有 DB、没有云。删了就没了。
+- `storage/` 是**唯一持久化**，没有 DB、没有云。删了就没了。**实际路径**：`backend/storage/`（`STORAGE_ROOT` env 默认 `storage`，后端 cwd 是 `backend/`）。仓库根的 `storage/` 只放 `.gitkeep` 占位 + `.gitignore` 规则，**不是**运行时数据目录。
 - `storage/raw_ingestion/<uuid>/` 是落盘目录；`storage/.staging/` 是写入中间态，启动时 `cleanup_stale_staging` 会清残留（`main.py` lifespan）。
 - dispatcher 用 **symlink** 把 raw bundle 链到 `IMG_DC_ROOT`（默认 `img-dc/`）。Windows 不支持，macOS / Linux 才能跑。
 - `storage/dispatch_log/`、`storage/raw_ingestion/`、`storage/.staging/` 在 `.gitignore` 里只保留 `.gitkeep`，**真实数据永不入 git**。

@@ -176,6 +176,49 @@ def test_duplicate_group_key_allowed(tmp_path):
     assert len(resp.json()["accepted"]) == 2
 
 
+def test_replaces_task_id_soft_deletes_original(tmp_path):
+    sid1 = str(uuid.uuid4())
+    data1, files1 = _multipart(["SKU007"], submit_id=sid1)
+    resp1 = _post(data1, files1, tmp_path)
+    assert resp1.status_code == 200
+    original_task_id = resp1.json()["accepted"][0]["task_id"]
+
+    sid2 = str(uuid.uuid4())
+    data2, files2 = _multipart(["SKU007"], submit_id=sid2)
+    data2["replaces_task_id"] = original_task_id
+    resp2 = _post(data2, files2, tmp_path)
+    assert resp2.status_code == 200
+    assert len(resp2.json()["accepted"]) == 1
+
+    original_meta = json.loads(
+        (tmp_path / "raw_ingestion" / original_task_id / "metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert "deleted_at" in original_meta
+    assert original_meta["deleted_by"] == "张三"
+
+
+def test_replaces_task_id_ignored_when_all_rejected(tmp_path):
+    sid1 = str(uuid.uuid4())
+    data1, files1 = _multipart(["SKU008"], submit_id=sid1)
+    resp1 = _post(data1, files1, tmp_path)
+    original_task_id = resp1.json()["accepted"][0]["task_id"]
+
+    sid2 = str(uuid.uuid4())
+    data2, files2 = _multipart(["SKU008"], submit_id=sid2, missing_role="product")
+    data2["replaces_task_id"] = original_task_id
+    resp2 = _post(data2, files2, tmp_path)
+    assert resp2.json()["accepted"] == []
+
+    original_meta = json.loads(
+        (tmp_path / "raw_ingestion" / original_task_id / "metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert "deleted_at" not in original_meta
+
+
 def test_health_still_works():
     resp = client.get("/health")
     assert resp.status_code == 200

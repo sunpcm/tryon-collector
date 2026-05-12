@@ -126,6 +126,7 @@ def save_showcase(
 def list_showcases(
     uploader: str | None = None,
     brand: str | None = None,
+    include_deleted: bool = False,
     limit: int = 100,
     offset: int = 0,
 ) -> dict:
@@ -138,9 +139,12 @@ def list_showcases(
         meta_path = showcase_dir / "metadata.json"
         if meta_path.is_file():
             try:
-                entries.append(json.loads(meta_path.read_text(encoding="utf-8")))
+                entry = json.loads(meta_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 continue
+            if not include_deleted and entry.get("deleted_at"):
+                continue
+            entries.append(entry)
 
     if uploader:
         entries = [e for e in entries if e.get("uploader") == uploader]
@@ -152,3 +156,64 @@ def list_showcases(
     page = entries[offset : offset + limit]
 
     return {"total": total, "offset": offset, "limit": limit, "showcases": page}
+
+
+def _showcase_dir(showcase_id: str) -> Path:
+    return STORAGE_ROOT / "showcases" / showcase_id
+
+
+def _read_showcase_meta(showcase_id: str) -> dict | None:
+    meta_path = _showcase_dir(showcase_id) / "metadata.json"
+    if not meta_path.is_file():
+        return None
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _write_showcase_meta(showcase_id: str, meta: dict) -> None:
+    (_showcase_dir(showcase_id) / "metadata.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+PATCHABLE_SHOWCASE_FIELDS = {"brand", "purpose"}
+
+
+def patch_showcase(showcase_id: str, updates: dict, actor: str | None = None) -> dict | None:
+    meta = _read_showcase_meta(showcase_id)
+    if meta is None or meta.get("deleted_at"):
+        return meta
+    cleaned: dict = {}
+    if "brand" in updates:
+        brand = str(updates["brand"]).strip()
+        if not brand or len(brand) > 64:
+            raise ShowcaseSaveError("invalid_brand")
+        cleaned["brand"] = brand
+    if "purpose" in updates:
+        cleaned["purpose"] = str(updates["purpose"]).strip()[:200]
+    meta.update(cleaned)
+    meta["updated_at"] = _now_iso()
+    if actor:
+        meta["updated_by"] = actor.strip()[:32]
+    _write_showcase_meta(showcase_id, meta)
+    return meta
+
+
+def soft_delete_showcase(showcase_id: str, actor: str | None = None) -> dict | None:
+    meta = _read_showcase_meta(showcase_id)
+    if meta is None:
+        return None
+    if meta.get("deleted_at"):
+        return meta
+    meta["deleted_at"] = _now_iso()
+    if actor:
+        meta["deleted_by"] = actor.strip()[:32]
+    _write_showcase_meta(showcase_id, meta)
+    return meta
+

@@ -112,3 +112,72 @@ def test_list_showcases_returns_sorted_and_filtered(tmp_path) -> None:
 
         combined = client.get("/api/showcases?uploader=u1&brand=B2")
         assert combined.json()["total"] == 1
+
+
+def test_patch_showcase_updates_brand_and_purpose(tmp_path) -> None:
+    create = _submit([("files", _jpeg())], tmp_path, brand="OldBrand", purpose="old")
+    sid = create.json()["showcase_id"]
+
+    with patch("app.services.showcase.STORAGE_ROOT", tmp_path):
+        resp = client.patch(
+            f"/api/showcases/{sid}",
+            json={"brand": "NewBrand", "purpose": "new"},
+            params={"actor": "张三"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["brand"] == "NewBrand"
+        assert body["purpose"] == "new"
+        assert body["updated_by"] == "张三"
+
+
+def test_patch_showcase_rejects_unknown_field(tmp_path) -> None:
+    create = _submit([("files", _jpeg())], tmp_path)
+    sid = create.json()["showcase_id"]
+    with patch("app.services.showcase.STORAGE_ROOT", tmp_path):
+        resp = client.patch(f"/api/showcases/{sid}", json={"uploader": "evil"})
+        assert resp.status_code == 422
+
+
+def test_patch_showcase_rejects_invalid_brand(tmp_path) -> None:
+    create = _submit([("files", _jpeg())], tmp_path)
+    sid = create.json()["showcase_id"]
+    with patch("app.services.showcase.STORAGE_ROOT", tmp_path):
+        resp = client.patch(f"/api/showcases/{sid}", json={"brand": ""})
+        assert resp.status_code == 422
+
+
+def test_delete_showcase_marks_soft_deleted(tmp_path) -> None:
+    create = _submit([("files", _jpeg())], tmp_path)
+    sid = create.json()["showcase_id"]
+    with patch("app.services.showcase.STORAGE_ROOT", tmp_path):
+        resp = client.delete(f"/api/showcases/{sid}", params={"actor": "u1"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "deleted_at" in body
+        assert body["deleted_by"] == "u1"
+
+        listing = client.get("/api/showcases").json()
+        assert listing["total"] == 0
+
+        full = client.get("/api/showcases?include_deleted=true").json()
+        assert full["total"] == 1
+
+
+def test_replaces_id_soft_deletes_original(tmp_path) -> None:
+    first = _submit([("files", _jpeg())], tmp_path, brand="B1")
+    sid = first.json()["showcase_id"]
+
+    second = _submit(
+        [("files", _jpeg())],
+        tmp_path,
+        brand="B1",
+        replaces_id=sid,
+    )
+    assert second.status_code == 201
+
+    with patch("app.services.showcase.STORAGE_ROOT", tmp_path):
+        listing = client.get("/api/showcases").json()
+        assert listing["total"] == 1
+        assert listing["showcases"][0]["showcase_id"] == second.json()["showcase_id"]
+

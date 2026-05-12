@@ -88,3 +88,85 @@ def test_empty_storage(client, tmp_path, monkeypatch):
     resp = client.get("/api/audit/bundles")
     assert resp.status_code == 200
     assert resp.json()["total"] == 0
+
+
+def _read_meta(path):
+    return json.loads((path / "metadata.json").read_text(encoding="utf-8"))
+
+
+def test_patch_bundle_updates_fields(client, sample_bundles):
+    resp = client.patch(
+        "/api/audit/bundles/task-0",
+        json={"title": "新标题"},
+        params={"actor": "alice"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["title"] == "新标题"
+    assert body["updated_by"] == "alice"
+    assert "updated_at" in body
+    assert _read_meta(sample_bundles / "task-0")["title"] == "新标题"
+
+
+def test_patch_bundle_rejects_unknown_fields(client, sample_bundles):
+    resp = client.patch(
+        "/api/audit/bundles/task-0",
+        json={"designer_id": "evil"},
+    )
+    assert resp.status_code == 422
+    assert resp.json()["detail"] == "no_patchable_fields"
+
+
+def test_patch_bundle_validates_tag(client, sample_bundles):
+    resp = client.patch(
+        "/api/audit/bundles/task-0",
+        json={"category": "不存在的品类"},
+    )
+    assert resp.status_code == 422
+    assert resp.json()["detail"] == "invalid_tag"
+
+
+def test_patch_bundle_404(client, sample_bundles):
+    resp = client.patch(
+        "/api/audit/bundles/missing",
+        json={"title": "x"},
+    )
+    assert resp.status_code == 404
+
+
+def test_delete_bundle_marks_soft_deleted(client, sample_bundles):
+    resp = client.delete("/api/audit/bundles/task-0", params={"actor": "alice"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "deleted_at" in body
+    assert body["deleted_by"] == "alice"
+
+    listing = client.get("/api/audit/bundles").json()
+    assert listing["total"] == 2
+    assert all(b["task_id"] != "task-0" for b in listing["bundles"])
+
+
+def test_delete_bundle_idempotent(client, sample_bundles):
+    client.delete("/api/audit/bundles/task-0", params={"actor": "alice"})
+    first = _read_meta(sample_bundles / "task-0")["deleted_at"]
+    resp = client.delete("/api/audit/bundles/task-0", params={"actor": "bob"})
+    assert resp.status_code == 200
+    second = _read_meta(sample_bundles / "task-0")["deleted_at"]
+    assert first == second
+
+
+def test_include_deleted_returns_soft_deleted(client, sample_bundles):
+    client.delete("/api/audit/bundles/task-0")
+    visible = client.get("/api/audit/bundles").json()
+    assert visible["total"] == 2
+    full = client.get(
+        "/api/audit/bundles", params={"include_deleted": "true"}
+    ).json()
+    assert full["total"] == 3
+
+
+def test_patch_after_delete_returns_409(client, sample_bundles):
+    client.delete("/api/audit/bundles/task-0")
+    resp = client.patch("/api/audit/bundles/task-0", json={"title": "x"})
+    assert resp.status_code == 409
+

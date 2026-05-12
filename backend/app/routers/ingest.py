@@ -10,10 +10,12 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request, UploadFile
 from fastapi.responses import JSONResponse
 
+from app.services import bundle as _bundle_svc
 from app.services.bundle import BundleSaveError, save_bundle
 from app.services.idempotency import get_idempotency, set_idempotency
 from app.services.tags import get_tags
@@ -198,4 +200,28 @@ async def submit_bundles_batch(request: Request) -> JSONResponse:
         "rejected": rejected,
     }
     set_idempotency(client_submit_id, response_body)
+
+    replaces_task_id = str(form.get("replaces_task_id", "")).strip()
+    if replaces_task_id and accepted:
+        _soft_delete_replaced(replaces_task_id, designer_id)
+
     return JSONResponse(status_code=200, content=response_body)
+
+
+def _soft_delete_replaced(task_id: str, actor: str) -> None:
+    """Best-effort soft delete of a replaced bundle. Failures are silent."""
+    meta_path = _bundle_svc.STORAGE_ROOT / "raw_ingestion" / task_id / "metadata.json"
+    if not meta_path.is_file():
+        return
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if meta.get("deleted_at"):
+            return
+        meta["deleted_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        if actor:
+            meta["deleted_by"] = actor[:32]
+        meta_path.write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except (json.JSONDecodeError, OSError):
+        return

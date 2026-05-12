@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'wouter';
 import { Banner } from '@/components/Banner';
 import { Button, Modal, showToast } from '@/components';
 import { fetchAuditBundles, deleteBundle, type AuditBundle } from '@/api';
-import { useIdentityStore, useEditingStore } from '@/store';
+import { useIdentityStore } from '@/store';
 
 const PAGE_SIZE = 20;
 
 export function AuditPage() {
   const { nickname } = useIdentityStore();
-  const setEditingBundle = useEditingStore(s => s.setBundle);
-  const [, navigate] = useLocation();
 
   const [bundles, setBundles] = useState<AuditBundle[]>([]);
   const [total, setTotal] = useState(0);
@@ -47,19 +44,6 @@ export function AuditPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
-
-  const handleEdit = (b: AuditBundle) => {
-    setEditingBundle({
-      task_id: b.task_id,
-      designer_id: b.designer_id,
-      business_line: b.business_line,
-      category: b.category,
-      title: b.title ?? '',
-      optional_notes: b.optional_notes ?? '',
-      group_key: b.group_key,
-    });
-    navigate('/');
-  };
 
   const handleDelete = async (b: AuditBundle) => {
     try {
@@ -221,20 +205,12 @@ export function AuditPage() {
                         {isDeleted ? (
                           <span className="text-gray-400">—</span>
                         ) : isMine ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEdit(b)}
-                              className="text-blue-500 hover:text-blue-700"
-                            >
-                              编辑
-                            </button>
-                            <button
-                              onClick={() => setConfirming(b)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              删除
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => setConfirming(b)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            删除
+                          </button>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}

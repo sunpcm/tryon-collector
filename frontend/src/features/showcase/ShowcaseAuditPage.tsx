@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
 import { Banner } from '@/components/Banner';
 import { Button, Modal, showToast } from '@/components';
 import { fetchShowcases, deleteShowcase } from '@/api';
 import type { Showcase } from '@/api';
-import { useIdentityStore, useEditingStore } from '@/store';
+import { useIdentityStore } from '@/store';
 
 const PAGE_SIZE = 20;
 
@@ -16,8 +15,6 @@ function formatBytes(n: number): string {
 
 export function ShowcaseAuditPage() {
   const { nickname } = useIdentityStore();
-  const setEditingShowcase = useEditingStore(s => s.setShowcase);
-  const [, navigate] = useLocation();
 
   const [rows, setRows] = useState<Showcase[]>([]);
   const [total, setTotal] = useState(0);
@@ -54,18 +51,6 @@ export function ShowcaseAuditPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
-
-  const handleEdit = (s: Showcase) => {
-    setEditingShowcase({
-      showcase_id: s.showcase_id,
-      uploader: s.uploader,
-      brand: s.brand,
-      purpose: s.purpose,
-    });
-    if (s.brand === 'monologue') navigate('/showcase/monologue');
-    else if (s.brand === '老凤祥') navigate('/showcase/laofengxiang');
-    else navigate('/showcase');
-  };
 
   const handleDelete = async (s: Showcase) => {
     try {
@@ -237,20 +222,12 @@ export function ShowcaseAuditPage() {
                         {isDeleted ? (
                           <span className="text-gray-400">—</span>
                         ) : isMine ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEdit(s)}
-                              className="text-blue-500 hover:text-blue-700"
-                            >
-                              编辑
-                            </button>
-                            <button
-                              onClick={() => setConfirming(s)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              删除
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => setConfirming(s)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            删除
+                          </button>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}

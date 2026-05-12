@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useMatrixStore, useIdentityStore } from '@/store';
 import { submitBundlesBatch, buildFileFieldName } from '@/api';
 import { showToast } from '@/components/Toast';
@@ -11,17 +11,11 @@ import { uuid } from '@/utils';
 interface ManualSubmitBarProps {
   businessLine: string;
   category: string;
-  replacesTaskId?: string;
-  initialTitle?: string;
-  onSubmitted?: () => void;
 }
 
 export function ManualSubmitBar({
   businessLine,
   category,
-  replacesTaskId,
-  initialTitle = '',
-  onSubmitted,
 }: ManualSubmitBarProps) {
   const manualFiles = useMatrixStore(s => s.manualFiles);
   const isManualReady = useMatrixStore(s => s.isManualReady);
@@ -29,11 +23,7 @@ export function ManualSubmitBar({
   const { nickname } = useIdentityStore();
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [title, setTitle] = useState(initialTitle);
-
-  useEffect(() => {
-    setTitle(initialTitle);
-  }, [initialTitle]);
+  const [title, setTitle] = useState('');
 
   const ready = isManualReady();
   const canSubmit = ready && !!nickname && !submitting;
@@ -81,21 +71,17 @@ export function ManualSubmitBar({
         client_submit_id: clientSubmitId,
         bundles,
         files: fileMap,
-        replaces_task_id: replacesTaskId,
       });
 
       if (response.rejected.length === 0) {
         showToast(
-          replacesTaskId
-            ? `编辑提交成功（旧记录已软删）`
-            : `提交成功（${response.accepted.length} 个任务包）`,
+          `提交成功（${response.accepted.length} 个任务包）`,
           'success'
         );
         incrementSubmitCount(response.accepted.length);
         window.dispatchEvent(new Event('submit-count-changed'));
         clearManual();
         setTitle('');
-        onSubmitted?.();
       } else {
         showToast(
           `${response.accepted.length} 成功，${response.rejected.length} 失败`,
@@ -119,8 +105,6 @@ export function ManualSubmitBar({
     category,
     clearManual,
     nickname,
-    replacesTaskId,
-    onSubmitted,
   ]);
 
   const totalCount =
@@ -157,7 +141,7 @@ export function ManualSubmitBar({
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          {submitting ? '提交中...' : replacesTaskId ? '保存修改' : '提交'}
+          {submitting ? '提交中...' : '提交'}
         </button>
         <button
           onClick={clearManual}

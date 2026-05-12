@@ -1,6 +1,7 @@
 # Phase 7 · 审计页过滤 / 编辑 / 软删除
 
 > 状态：**已完成** ✅（2026-05-12）
+> 后续修订：**编辑功能从 UI 撤回**（2026-05-12 当天），见 §8。后端 endpoint 保留。
 
 ## 1. 背景
 
@@ -109,3 +110,43 @@ frontend/src/features/manual-sort/ManualSubmitBar.tsx +25/-10
 frontend/src/App.tsx                                   +35/-3
 docs/api_contract.md              +120     (§2.3–2.12, v0.3.0)
 ```
+
+## 8. 后续修订：撤回编辑功能（2026-05-12 当天）
+
+实际验证后判断"编辑跳首页 + 重新提交"的体验对用户**不够好**：
+
+- bundle 编辑只能改元数据（title / 品类 / 业务线），但用户的真实诉求往往包含"换图"，做不了
+- 让用户重新挑选图（不带过原图）重新提交一遍 = 比删了重发还麻烦
+- 把图带过去技术上可做（新增 GET 文件 endpoint + 下载转 File），但 dev-time 成本和"磁盘 2 倍占用"的资源代价不值得
+
+决定：**前端去掉所有编辑 UI**，只保留删除。后端 endpoint 全部留下：
+
+| 后端保留 | 前端状态 |
+|---|---|
+| `PATCH /api/audit/bundles/{task_id}` | UI 未暴露 |
+| `PATCH /api/showcases/{showcase_id}` | UI 未暴露 |
+| `POST /api/bundles/batch` 接 `replaces_task_id` | UI 未暴露（前端不传） |
+| `POST /api/showcases/batch` 接 `replaces_id` | UI 未暴露（前端不传） |
+| `DELETE /api/audit/bundles/{task_id}` | ✅ UI 暴露（行内"删除"按钮） |
+| `DELETE /api/showcases/{showcase_id}` | ✅ UI 暴露 |
+| `GET ?include_deleted=` | ✅ UI 暴露（"显示已删除"复选框） |
+
+### 撤回涉及的前端改动
+
+- `frontend/src/store/editing.ts` 删除
+- `frontend/src/store/index.ts` 去掉 `useEditingStore` 导出
+- `App.tsx` MainPage 去掉编辑 banner / `editingBundle` 状态预填
+- `ManualSubmitBar.tsx` 去掉 `replacesTaskId` / `initialTitle` / `onSubmitted` props
+- `AuditPage.tsx` / `ShowcaseAuditPage.tsx` 去掉行内"编辑"按钮 + `handleEdit`
+- `ShowcaseUploadPage.tsx` 去掉 edit-mode banner / `isMetaOnlyEdit` 分支 / `patchShowcase` 调用 / `replaces_id` 字段
+
+`api/client.ts` 里的 `patchBundle` / `deleteBundle` / `patchShowcase` / `deleteShowcase` / `replaces_*` 字段保留，作为公开 SDK，方便日后回头补编辑或外部脚本调用。
+
+### 想日后加回编辑
+
+1. 加 GET 文件 endpoint：`GET /api/audit/bundles/{task_id}/files/{filename}` + showcase 同款
+2. 编辑流程：进编辑页 → 后端拉所有原文件转 `File` → 塞 `manualFiles`/`files` → 用户改/不改都能走 POST + `replaces_*`
+3. 或更轻量：dropzone 显示原图缩略图作占位预览，"修改图片"按钮才真触发下载 + `File` 化（"智能两态"）
+
+后端契约 v0.3.0 已经为这条路铺好了 `replaces_*` 半成品。
+

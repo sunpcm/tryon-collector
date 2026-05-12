@@ -266,8 +266,22 @@ bundle 与 showcase 共用同一约定。出现于 `metadata.json` 与所有 lis
 写操作（PATCH / DELETE / `replaces_*`）**完全信任前端**：
 
 - 服务端不校验 `actor` 是否等于记录拥有者
-- 前端通过"只看自己 + 仅自己的行显示编辑/删除"做软约束，但 cURL 任意 `task_id` 都能改/删
+- 前端通过"只看自己 + 仅自己的行显示删除"做软约束，但 cURL 任意 `task_id` 都能改/删
 - 这是局域网工具的有意决策；如需收紧，后续阶段可加 `X-Uploader` header 校验或引入 token
+
+### 2.13 UI 暴露状态（v0.3.0）
+
+后端契约 v0.3.0 全量提供 PATCH / DELETE / `replaces_*` / `include_deleted`。当前前端 UI **只暴露 DELETE 与 include_deleted**：
+
+| 能力 | UI 暴露 |
+|---|---|
+| `DELETE` 行内"删除"按钮（带 Modal 二次确认） | ✅ |
+| `GET ?include_deleted=true` "显示已删除" checkbox | ✅ |
+| 默认按 nickname 过滤 + "看所有人的" checkbox | ✅ |
+| `PATCH` 元数据编辑 | ❌ |
+| `POST + replaces_*` 编辑覆盖 | ❌ |
+
+PATCH 与 `replaces_*` 是为了未来加回"编辑"功能时不再动后端契约而保留的 SDK，目前没有前端入口，但 cURL / 外部脚本可以直接调用。详见 `docs/phases/phase_7.md` §8。
 
 
 

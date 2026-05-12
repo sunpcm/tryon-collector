@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Banner } from '@/components/Banner';
 import { Button, Input, ProgressBar, showToast } from '@/components';
-import { useIdentityStore } from '@/store';
-import { fetchBrands, submitShowcase } from '@/api';
+import { useIdentityStore, useEditingStore } from '@/store';
+import { fetchBrands, submitShowcase, patchShowcase } from '@/api';
 import { uuid } from '@/utils';
 
 interface PickedFile {
@@ -42,19 +42,30 @@ export function ShowcaseUploadPage({
   title = '展示图采集',
 }: ShowcaseUploadPageProps = {}) {
   const { nickname } = useIdentityStore();
+  const editingShowcase = useEditingStore(s => s.showcase);
+  const setEditingShowcase = useEditingStore(s => s.setShowcase);
   const [files, setFiles] = useState<PickedFile[]>([]);
-  const [brand, setBrand] = useState(lockedBrand ?? '');
-  const [purpose, setPurpose] = useState('');
+  const [brand, setBrand] = useState(
+    lockedBrand ?? editingShowcase?.brand ?? ''
+  );
+  const [purpose, setPurpose] = useState(editingShowcase?.purpose ?? '');
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const brandBoxRef = useRef<HTMLDivElement | null>(null);
   const isBrandLocked = !!lockedBrand;
+  const isMetaOnlyEdit = !!editingShowcase && files.length === 0;
 
   useEffect(() => {
     if (lockedBrand) setBrand(lockedBrand);
   }, [lockedBrand]);
+
+  useEffect(() => {
+    if (!editingShowcase) return;
+    if (!lockedBrand) setBrand(editingShowcase.brand);
+    setPurpose(editingShowcase.purpose);
+  }, [editingShowcase, lockedBrand]);
 
   useEffect(() => {
     if (isBrandLocked) return;
@@ -123,31 +134,54 @@ export function ShowcaseUploadPage({
   };
 
   const canSubmit =
-    !!nickname && brand.trim().length > 0 && files.length > 0 && !submitting;
+    !!nickname &&
+    brand.trim().length > 0 &&
+    (files.length > 0 || isMetaOnlyEdit) &&
+    !submitting;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setSubmitting(true);
     setProgress(10);
     try {
-      const resp = await submitShowcase({
-        uploader: nickname!,
-        brand: brand.trim(),
-        purpose: purpose.trim() || undefined,
-        client_submit_id: uuid(),
-        files: files.map(f => f.file),
-      });
-      setProgress(100);
-      showToast(`提交成功：${resp.showcase_id.slice(0, 8)}...`, 'success');
-      for (const f of files) URL.revokeObjectURL(f.preview);
-      setFiles([]);
-      if (!isBrandLocked) {
-        setBrand('');
-        fetchBrands()
-          .then(setBrandOptions)
-          .catch(() => {});
+      if (isMetaOnlyEdit && editingShowcase) {
+        await patchShowcase(
+          editingShowcase.showcase_id,
+          { brand: brand.trim(), purpose: purpose.trim() },
+          nickname ?? undefined
+        );
+        setProgress(100);
+        showToast('修改成功', 'success');
+        setEditingShowcase(null);
+        if (!isBrandLocked) setBrand('');
+        setPurpose('');
+      } else {
+        const resp = await submitShowcase({
+          uploader: nickname!,
+          brand: brand.trim(),
+          purpose: purpose.trim() || undefined,
+          client_submit_id: uuid(),
+          files: files.map(f => f.file),
+          replaces_id: editingShowcase?.showcase_id,
+        });
+        setProgress(100);
+        showToast(
+          editingShowcase
+            ? `编辑提交成功（旧记录已软删 ${resp.showcase_id.slice(0, 8)}...）`
+            : `提交成功：${resp.showcase_id.slice(0, 8)}...`,
+          'success'
+        );
+        for (const f of files) URL.revokeObjectURL(f.preview);
+        setFiles([]);
+        setEditingShowcase(null);
+        if (!isBrandLocked) {
+          setBrand('');
+          fetchBrands()
+            .then(setBrandOptions)
+            .catch(() => {});
+        }
+        setPurpose('');
       }
-      setPurpose('');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`提交失败：${msg}`, 'error');
@@ -165,6 +199,30 @@ export function ShowcaseUploadPage({
         <p className="text-sm text-gray-500">
           上传用于展示的图片或视频。一次可上传一批。
         </p>
+
+        {editingShowcase && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm flex items-center justify-between">
+            <span className="text-amber-800">
+              正在编辑展示图{' '}
+              <code className="font-mono">
+                {editingShowcase.showcase_id.slice(0, 8)}...
+              </code>
+              ：不上传新文件就只改品牌/用途，上传新文件则旧记录会被软删
+            </span>
+            <button
+              className="text-amber-700 hover:text-amber-900 text-xs"
+              onClick={() => {
+                for (const f of files) URL.revokeObjectURL(f.preview);
+                setFiles([]);
+                setEditingShowcase(null);
+                if (!isBrandLocked) setBrand('');
+                setPurpose('');
+              }}
+            >
+              取消编辑
+            </button>
+          </div>
+        )}
 
         <section className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -305,7 +363,13 @@ export function ShowcaseUploadPage({
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
-            {submitting ? '提交中...' : '提交展示图'}
+            {submitting
+              ? '提交中...'
+              : isMetaOnlyEdit
+                ? '保存修改'
+                : editingShowcase
+                  ? '提交新版本（旧记录将被软删）'
+                  : '提交展示图'}
           </Button>
         </div>
       </div>

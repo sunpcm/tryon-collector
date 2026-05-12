@@ -25,7 +25,7 @@ def sample_bundles(tmp_path, monkeypatch):
     root.mkdir(parents=True)
 
     for i, (designer, category) in enumerate(
-        [("alice", "上衣"), ("bob", "裤装"), ("alice", "连衣裙")]
+        [("alice", "上衣"), ("bob", "裤装"), ("alice", "T恤")]
     ):
         task_dir = root / f"task-{i}"
         task_dir.mkdir()
@@ -33,7 +33,7 @@ def sample_bundles(tmp_path, monkeypatch):
             "task_id": f"task-{i}",
             "submit_id": f"submit-{i}",
             "designer_id": designer,
-            "business_line": "春季女装",
+            "business_line": "迪桑特",
             "category": category,
             "group_key": f"SKU{i:05d}",
             "upload_time": "2026-05-06T10:00:00Z",

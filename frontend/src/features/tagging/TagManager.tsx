@@ -90,7 +90,7 @@ export function TagManager() {
 
         {/* Business Lines */}
         <section className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-          <h2 className="text-sm font-medium text-gray-700 mb-3">业务线</h2>
+          <h2 className="text-sm font-medium text-gray-700 mb-3">品牌</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {businessLines.map(item => (
               <span
@@ -113,7 +113,7 @@ export function TagManager() {
               value={newBusinessLine}
               onChange={e => setNewBusinessLine(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addBusinessLine()}
-              placeholder="输入新业务线..."
+              placeholder="输入新品牌..."
               className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
             />
             <button

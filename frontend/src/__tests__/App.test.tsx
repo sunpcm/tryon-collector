@@ -33,7 +33,7 @@ describe('App Component', () => {
 
   it('renders tag selectors', () => {
     render(<App />);
-    expect(screen.getByText('业务线')).toBeInTheDocument();
+    expect(screen.getByText('品牌')).toBeInTheDocument();
     expect(screen.getByText('品类')).toBeInTheDocument();
   });
 });

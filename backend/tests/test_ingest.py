@@ -43,8 +43,8 @@ def _multipart(
 
     data = {
         "designer_id": "张三",
-        "business_line": "春季女装",
-        "category": "连衣裙",
+        "business_line": "迪桑特",
+        "category": "T恤",
         "optional_notes": "",
         "client_submit_id": submit_id,
         "bundles": json.dumps(bundles),
@@ -156,8 +156,8 @@ def test_duplicate_group_key_allowed(tmp_path):
     sid = str(uuid.uuid4())
     data = {
         "designer_id": "张三",
-        "business_line": "春季女装",
-        "category": "连衣裙",
+        "business_line": "迪桑特",
+        "category": "T恤",
         "optional_notes": "",
         "client_submit_id": sid,
     }

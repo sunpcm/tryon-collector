@@ -10,8 +10,22 @@ STORAGE_ROOT = Path(os.getenv("STORAGE_ROOT", "storage"))
 _TAGS_FILE = STORAGE_ROOT / "tags.json"
 
 _DEFAULT_TAGS = {
-    "business_lines": ["春季女装", "秋季女装", "春季男装", "秋季男装", "童装", "配饰"],
-    "categories": ["连衣裙", "上衣", "裤子", "外套", "裙子", "鞋履", "包袋", "其他"],
+    "business_lines": ["迪桑特", "UA"],
+    "categories": [
+        "帽子",
+        "包",
+        "上衣",
+        "T恤",
+        "外套",
+        "裤子",
+        "短裤",
+        "连衣裙",
+        "裙子",
+        "鞋履",
+        "袜子",
+        "配饰",
+        "其他",
+    ],
 }
 
 

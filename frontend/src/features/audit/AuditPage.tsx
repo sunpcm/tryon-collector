@@ -130,7 +130,7 @@ export function AuditPage() {
                   品类
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                  业务线
+                  品牌
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
                   上传时间

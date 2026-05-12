@@ -23,8 +23,8 @@ def _fake_files(roles: list[str] = None) -> list[tuple[str, str, io.BytesIO, str
 def _meta() -> dict:
     return {
         "designer_id": "张三",
-        "business_line": "春季女装",
-        "category": "连衣裙",
+        "business_line": "迪桑特",
+        "category": "T恤",
         "optional_notes": "",
     }
 

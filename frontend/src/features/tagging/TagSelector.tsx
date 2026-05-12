@@ -24,7 +24,7 @@ export function TagSelector({
   return (
     <div className="space-y-3">
       <div>
-        <span className="text-xs text-gray-500 mb-1 block">业务线</span>
+        <span className="text-xs text-gray-500 mb-1 block">品牌</span>
         <div className="flex flex-wrap gap-2">
           {businessLines.map(line => (
             <Tag

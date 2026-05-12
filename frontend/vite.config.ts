@@ -16,15 +16,14 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5180,
-    strictPort: true,
+    port: Number(process.env.FRONTEND_PORT) || 5180,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8003',
+        target: process.env.BACKEND_URL || 'http://127.0.0.1:8003',
         changeOrigin: true,
       },
       '/health': {
-        target: 'http://127.0.0.1:8003',
+        target: process.env.BACKEND_URL || 'http://127.0.0.1:8003',
         changeOrigin: true,
       },
     },

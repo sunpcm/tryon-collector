@@ -22,11 +22,11 @@ git clone <repo-url> && cd tryon-collector
 # 2. 安装依赖（前端 pnpm + 后端 uv，一条命令）
 make install
 
-# 3. 启动开发服务器（前端 :5180 HTTPS + 后端 :8003）
+# 3. 启动开发服务器（前端 :5180 HTTPS + 后端 :8003，端口被占自动 +1，最多试 10 次）
 make dev
 ```
 
-浏览器打开 `https://localhost:5180`，首次访问会弹出花名输入框。
+浏览器打开 `https://localhost:5180`（被占时启动日志会打印实际端口，如 `:5181`），首次访问会弹出花名输入框。
 
 > **关于自签证书**：dev 模式启用 HTTPS（`@vitejs/plugin-basic-ssl`），首次访问浏览器会提示证书不可信，点 "高级 → 继续访问" 即可，每个浏览器只需接受一次。
 > 局域网其他机器访问 `https://<部署机IP>:5180`，同样接受一次证书。
@@ -37,7 +37,7 @@ make dev
 
 ```bash
 make install        # 安装前端 (pnpm) + 后端 (uv) 依赖
-make dev            # 同时启动前端 :5180 (HTTPS) + 后端 :8003
+make dev            # 同时启动前端 :5180 (HTTPS) + 后端 :8003，端口被占自动 +1（上限 10 次）
 make test           # 运行全部测试（Vitest + pytest）
 make test-frontend  # 仅前端单测
 make test-backend   # 仅后端单测

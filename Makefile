@@ -1,6 +1,8 @@
 .PHONY: help install dev dev-frontend dev-backend test test-frontend test-backend \
         lint lint-frontend lint-backend e2e build clean deploy
 
+SHELL := /usr/bin/env bash
+
 help:
 	@echo "Tryon Collector · make targets"
 	@echo ""
@@ -23,10 +25,31 @@ dev-frontend:
 dev-backend:
 	cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 
+# find_free_port BASE NAME → echoes first free port starting at BASE, up to BASE+9
+define find_free_port
+	port=$(1); \
+	for _ in {0..9}; do \
+	  if ! (exec 3<>/dev/tcp/127.0.0.1/$$port) 2>/dev/null; then \
+	    echo $$port; break; \
+	  fi; \
+	  exec 3>&- 2>/dev/null || true; \
+	  port=$$((port+1)); \
+	done
+endef
+
 dev:
-	@echo "→ starting backend on :8003 and frontend on :5180"
-	@trap 'kill 0' INT TERM EXIT; \
-	 (cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload) & \
+	@set -e; \
+	 BACKEND_PORT=$$($(call find_free_port,8003)); \
+	 FRONTEND_PORT=$$($(call find_free_port,5180)); \
+	 if [[ -z $$BACKEND_PORT || -z $$FRONTEND_PORT ]]; then \
+	   echo "✗ no free port within 10 attempts (backend base 8003, frontend base 5180)"; \
+	   exit 1; \
+	 fi; \
+	 echo "→ backend :$$BACKEND_PORT  frontend :$$FRONTEND_PORT"; \
+	 export BACKEND_URL="http://127.0.0.1:$$BACKEND_PORT"; \
+	 export FRONTEND_PORT; \
+	 trap 'kill 0' INT TERM EXIT; \
+	 (cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port $$BACKEND_PORT --reload) & \
 	 (cd frontend && pnpm dev) & \
 	 wait
 
